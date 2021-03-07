@@ -1,0 +1,83 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>S.C.O.P.E</title>
+	<link rel="stylesheet" href="city.css">
+</head>
+<body>
+	<p id="title">Canvas is below here:</p>
+
+	<div id = "main_container">
+		<canvas id="c"> </canvas>
+		<div id ="optional_settings"/></div>
+	</div>
+</body>
+
+
+<!-- Later I should move these shaders into a different file -->
+<script id="pink-triangle-vertex-shader" type="VERTEX_SHADER">#version 300 es
+
+	// an attribute is an input (in) to a vertex shader.
+	// It will receive data from a buffer
+	in vec4 a_position;
+
+	// all shaders have a main function
+	void main() {
+
+	  // gl_Position is a special variable a vertex shader
+	  // is responsible for setting
+	  gl_Position = a_position;
+	}
+
+</script>
+
+
+<script id="pink-triangle-fragment-shader" type="FRAGMENT_SHADER">#version 300 es
+
+	// fragment shaders don't have a default precision so we need
+	// to pick one. highp is a good default. It means "high precision"
+	precision highp float;
+
+	// we need to declare an output for the fragment shader
+	out vec4 outColor;
+
+	void main() {
+	  // Just set the output to a constant redish-purple
+	  outColor = vec4(1, 0, 0.5, 1);
+	}
+
+</script>
+
+
+<!-- Code for rendering to screen -->
+<script src = "../resources/setup/createAndCompile.js"> </script>
+<script src = "city.js"></script>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

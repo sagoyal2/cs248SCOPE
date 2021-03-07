@@ -9,5 +9,5 @@ app.use(express.static('SCOPE'));
 
 app.listen(port, function() {
     console.log(`starting server at http://localhost:${port}`);
-    console.log(`To view our city go to http://localhost:${port}/SCOPE.html in your favorite web browser. (Chrome preferred)`);
+    console.log(`To view our city go to http://localhost:${port}/City/city.html in your favorite web browser. (Chrome preferred)`);
 });

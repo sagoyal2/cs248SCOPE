@@ -27,5 +27,9 @@ this will create an [express](https://expressjs.com/) server on your local machi
 
 Add stuff here...
 
+## Acknowledgements
+
+We would like to thank Gregg Tavares for his extraordinary [WebGL tutorials](https://webgl2fundamentals.org/).
+
 
 > Written with the help of [StackEdit](https://stackedit.io/).
