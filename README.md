@@ -20,7 +20,10 @@ To view city:
 ```
 node index.js
 ```
-this will create an [express](https://expressjs.com/) server on your local machine, then in favorite browser go to `http://localhost:3000/SCOPE`
+this will create an [express](https://expressjs.com/) server on your local machine, then in favorite browser go to 
+```
+http://localhost:${port}/City/city.html
+```
 
 
 ## User Interaction
