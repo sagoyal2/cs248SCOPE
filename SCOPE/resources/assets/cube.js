@@ -28,29 +28,29 @@ function set_cube_position(gl) {
 		-1,   1,  -1,
 		-1,   1,   1,
 
-		// //LEFT
-		// -1,  -1,   1,
-		// -1,   1,  -1,
-		// -1,  -1,  -1,
-		// -1,  -1,   1,
-		// -1,   1,   1,
-		// -1,   1,  -1,
+		//LEFT
+		-1,  -1,   1,
+		-1,   1,  -1,
+		-1,  -1,  -1,
+		-1,  -1,   1,
+		-1,   1,   1,
+		-1,   1,  -1,
 
-		// //BACK
-		// -1,  -1,  -1,
-		// -1,   1,  -1,
-		//  1,   1,  -1,
-		//  1,   1,  -1,
-		//  1,  -1,  -1,
-		// -1,  -1,  -1,
+		//BACK
+		-1,  -1,  -1,
+		-1,   1,  -1,
+		 1,   1,  -1,
+		 1,   1,  -1,
+		 1,  -1,  -1,
+		-1,  -1,  -1,
 
-		// //BOTTOM
-		// -1,  -1,   1,
-		// -1,  -1,  -1,
-		//  1,  -1,  -1,
-		//  1,  -1,  -1,
-		//  1,  -1,   1,
-		// -1,  -1,   1,
+		//BOTTOM
+		-1,  -1,   1,
+		-1,  -1,  -1,
+		 1,  -1,  -1,
+		 1,  -1,  -1,
+		 1,  -1,   1,
+		-1,  -1,   1,
 
 	];
 
@@ -172,7 +172,7 @@ function set_cube_normal(gl) {
 
 function set_f_position(gl) {
   var positions = new Float32Array([
-          // left column front
+          // left column back
           0,   0,  0,
           0, 150,  0,
           30,   0,  0,
@@ -180,7 +180,7 @@ function set_f_position(gl) {
           30, 150,  0,
           30,   0,  0,
 
-          // top rung front
+          // top rung back
           30,   0,  0,
           100,   0,  0,
           30,  30,  0,
@@ -188,7 +188,7 @@ function set_f_position(gl) {
           100,   0,  0,
           100,  30,  0,
 
-          // middle rung front
+          // middle rung back
           30,  60,  0,
           30,  90,  0,
           67,  60,  0,
@@ -196,7 +196,8 @@ function set_f_position(gl) {
           67,  90,  0,
           67,  60,  0,
 
-          // left column back
+          //ALL CORRECT below
+          // left column front
             0,   0,  30,
            30,   0,  30,
             0, 150,  30,
@@ -204,7 +205,7 @@ function set_f_position(gl) {
            30,   0,  30,
            30, 150,  30,
 
-          // top rung back
+          // top rung front
            30, 150,  30,
            30, 120,  30,
           100, 150,  30,
@@ -213,7 +214,7 @@ function set_f_position(gl) {
           100, 120,  30,
 
 
-          // middle rung back
+          // middle rung front
            30,  60,  30,
            67,  60,  30,
            30,  90,  30,

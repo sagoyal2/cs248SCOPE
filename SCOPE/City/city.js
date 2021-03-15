@@ -105,7 +105,7 @@ function render_cube(){
   //shouldn't these be negative?
 
   //camera args
-  var cameraPosition = [-2, 3, 5];
+  var cameraPosition = [5, 5, 5];
   var target = [0, 0, 0];
   var up = [0, 1, 0];
 
@@ -134,8 +134,8 @@ function render_cube(){
 
     var proj = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
     var world2Camera = m4.lookAt(cameraPosition, target, up);
-    var obj2world2NDC = m4.multiply(world2Camera, proj);
-    gl.uniformMatrix4fv(obj2world2NDC_loc, false, obj2world2NDC);
+    var proj2Camera = m4.multiply(world2Camera, proj);
+    gl.uniformMatrix4fv(obj2world2NDC_loc, false, proj2Camera);
 
     //Create and Set world2cameraInverseTranspose 
     // world2cameraInverseTranspose = m4.transpose(m4.inverse(world2Camera));
@@ -148,7 +148,7 @@ function render_cube(){
     fill_fn(gl, position_loc, set_cube_position);
     fill_fn(gl, normal_loc, set_cube_normal);
     //setWorldViewPerspectiveMatrix
-    gl.drawArrays(gl.TRIANGLES, 0, 3*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
+    gl.drawArrays(gl.TRIANGLES, 0, 6*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
   }
 }
 
@@ -251,8 +251,8 @@ function fill_fn(gl, attribute_location, _fn) {
 }
 
 //RENDER
-render_cube();
-//render_f();
+//render_cube();
+render_f();
 
 
 
