@@ -333,55 +333,57 @@ var m4 = {
 		var xAxis = this.normalize(this.cross(up, zAxis));
 		var yAxis = this.normalize(this.cross(zAxis, xAxis));
 
-		return [
+		var m = [
 			xAxis[0], xAxis[1], xAxis[2], 0,
 			yAxis[0], yAxis[1], yAxis[2], 0,
 			zAxis[0], zAxis[1], zAxis[2], 0,
 			cameraPosition[0], cameraPosition[1], cameraPosition[2], 1,
 		];
+
+		return m4.inverse(m);
 	},
 
-	world2camera: function(cameraPosition, target, up) {
-		var w_axis = this.normalize(this.subtractVectors(target, eye));
-		var u_axis = this.normalize(this.cross(w_axis, up));
-		var v_axis = this.normalize(this.cross(u_axis, w_axis));
+	// createWorldToCameraMatrix: function(eye, target, up) {
+	// 	var w_axis = this.normalize(this.subtractVectors(target, eye));
+	// 	var u_axis = this.normalize(this.cross(w_axis, up));
+	// 	var v_axis = this.normalize(this.cross(u_axis, w_axis));
 
 		
-		  m[0] = u; //map to x-axis
-		  m[1] = v; //map to y-axis
-		  m[2] =  -w; //map to negative z-axis
+	// 	  // m[0] = u; //map to x-axis
+	// 	  // m[1] = v; //map to y-axis
+	// 	  // m[2] =  -w; //map to negative z-axis
 		
-		var camera2world = [ 
-		u_axis[0],  v_axis[1],-w_axis[2], cameraPosition[0],
-		u_axis[0],  v_axis[1],-w_axis[2], cameraPosition[1],
-		u_axis[0],  v_axis[1],-w_axis[2], cameraPosition[2],
-			    0,          0,         0, 1,
-		];
+	// 	var camera2world = [ 
+	// 	u_axis[0],  v_axis[1],-w_axis[2], eye[0],
+	// 	u_axis[0],  v_axis[1],-w_axis[2], eye[1],
+	// 	u_axis[0],  v_axis[1],-w_axis[2], eye[2],
+	// 		    0,          0,         0, 1,
+	// 	];
 
-		return this.inverse(camera2world);
-	},
+	// 	return this.inverse(camera2world);
+	// },
 
-	createWorldToCameraMatrix : function(eye, target, up){
+	// createWorldToCameraMatrix : function(eye, target, up){
 
-		var w_axis = this.normalize(this.subtractVectors(target, eye));
-		var u_axis = this.normalize(this.cross(w_axis, up));
-		var v_axis = this.normalize(this.cross(u_axis, w_axis));
+	// 	var w_axis = this.normalize(this.subtractVectors(target, eye));
+	// 	var u_axis = this.normalize(this.cross(w_axis, up));
+	// 	var v_axis = this.normalize(this.cross(u_axis, w_axis));
 
-		/*
-		  m[0] = u; //map to x-axis
-		  m[1] = v; //map to y-axis
-		  m[2] =  -w; //map to negative z-axis
-		*/
-		var m = [ 
-		u_axis[0],  u_axis[1], u_axis[2], 0,
-		v_axis[0],  v_axis[1], v_axis[2], 0,
-		-w_axis[0],-w_axis[1],-w_axis[2], 0,
-			    0,          0,         0, 1,
-		];
+		
+	// 	  m[0] = u; //map to x-axis
+	// 	  m[1] = v; //map to y-axis
+	// 	  m[2] =  -w; //map to negative z-axis
+		
+	// 	var m = [ 
+	// 	u_axis[0],  u_axis[1], u_axis[2], 0,
+	// 	v_axis[0],  v_axis[1], v_axis[2], 0,
+	// 	-w_axis[0],-w_axis[1],-w_axis[2], 0,
+	// 		    0,          0,         0, 1,
+	// 	];
 
-		return this.multiply(m, this.translation(-eye[0], -eye[1], -eye[2]));
+	// 	return this.multiply(m, this.translation(-eye[0], -eye[1], -eye[2]));
 
-	},
+	// },
 
 	inverse: function(m, dst) {
 		dst = dst || new MatType(16);

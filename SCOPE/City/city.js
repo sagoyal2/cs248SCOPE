@@ -93,7 +93,7 @@ function render_cube(){
   var normal_loc = gl.getAttribLocation(program, "a_normal");
   var light_dir_loc = gl.getUniformLocation(program, "v_light_dir");
   var obj2world2NDC_loc = gl.getUniformLocation(program, "obj2world2NDC");
-  var world2cameraInverseTranspose_loc = gl.getUniformLocation(program, "world2cameraInverseTranspose"); //https://webgl2fundamentals.org/webgl/lessons/webgl-3d-lighting-directional.html
+  //var world2cameraInverseTranspose_loc = gl.getUniformLocation(program, "world2cameraInverseTranspose"); //https://webgl2fundamentals.org/webgl/lessons/webgl-3d-lighting-directional.html
 
 
   // Set ___________
@@ -105,8 +105,8 @@ function render_cube(){
   //shouldn't these be negative?
 
   //camera args
-  var cameraPosition = [1000, 1000, 2000];
-  var target = [0, 35, 0];
+  var cameraPosition = [-2, 3, 5];
+  var target = [0, 0, 0];
   var up = [0, 1, 0];
 
   var light_dir = [0.5, 0.7, 1];
@@ -123,18 +123,23 @@ function render_cube(){
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.useProgram(program);
 
-    //Create and Set obj2world2NDC
+    // //Create and Set obj2world2NDC
+    // var proj = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
+    // var world2Camera = m4.createWorldToCameraMatrix(cameraPosition, target, up);
+    // var viewMatrix = m4.inverse(world2Camera);
+    // var world2CameraNDC = m4.multiply(proj, world2Camera);
+    // var obj2world = m4.identity();
+    // var obj2world2NDC = m4.multiply(world2CameraNDC, obj2world);
+    // gl.uniformMatrix4fv(obj2world2NDC_loc, false, obj2world2NDC);
+
     var proj = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
-    var world2Camera = m4.createWorldToCameraMatrix(cameraPosition, target, up);
-    var viewMatrix = m4.inverse(world2Camera);
-    var world2CameraNDC = m4.multiply(proj, world2Camera);
-    var obj2world = m4.identity();
-    var obj2world2NDC = m4.multiply(world2CameraNDC, obj2world);
+    var world2Camera = m4.lookAt(cameraPosition, target, up);
+    var obj2world2NDC = m4.multiply(world2Camera, proj);
     gl.uniformMatrix4fv(obj2world2NDC_loc, false, obj2world2NDC);
-    
+
     //Create and Set world2cameraInverseTranspose 
-    world2cameraInverseTranspose = m4.transpose(m4.inverse(world2Camera));
-    gl.uniformMatrix4fv(world2cameraInverseTranspose_loc, false, world2cameraInverseTranspose);
+    // world2cameraInverseTranspose = m4.transpose(m4.inverse(world2Camera));
+    // gl.uniformMatrix4fv(world2cameraInverseTranspose_loc, false, world2cameraInverseTranspose);
 
     //Set light_dir
     gl.uniform3fv(light_dir_loc, m4.normalize(light_dir));
@@ -143,7 +148,7 @@ function render_cube(){
     fill_fn(gl, position_loc, set_cube_position);
     fill_fn(gl, normal_loc, set_cube_normal);
     //setWorldViewPerspectiveMatrix
-    gl.drawArrays(gl.TRIANGLES, 0, 6*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
+    gl.drawArrays(gl.TRIANGLES, 0, 3*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
   }
 }
 
@@ -195,11 +200,10 @@ function render_f(){
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.useProgram(program);
 
-    var projectionMatrix = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
-    var cameraMatrix = m4.lookAt(cameraPosition, target, up);
-    var viewMatrix = m4.inverse(cameraMatrix);
-    var viewProjectionMatrix = m4.multiply(viewMatrix, projectionMatrix);
-    gl.uniformMatrix4fv(obj2world2NDC_loc, false, viewProjectionMatrix);
+    var proj = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
+    var world2Camera = m4.lookAt(cameraPosition, target, up);
+    var obj2world2NDC = m4.multiply(world2Camera, proj);
+    gl.uniformMatrix4fv(obj2world2NDC_loc, false, obj2world2NDC);
 
 
     //Set light_dir
@@ -247,8 +251,8 @@ function fill_fn(gl, attribute_location, _fn) {
 }
 
 //RENDER
-//render_cube();
-render_f();
+render_cube();
+//render_f();
 
 
 
