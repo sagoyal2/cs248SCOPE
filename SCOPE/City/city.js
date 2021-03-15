@@ -128,12 +128,9 @@ function render_cube(){
     var world2Camera = m4.createWorldToCameraMatrix(cameraPosition, target, up);
     var viewMatrix = m4.inverse(world2Camera);
     var world2CameraNDC = m4.multiply(proj, world2Camera);
-    //var obj2world = m4.translation(0, 0, 0); //shift the cube up and back towards neg z axis
     var obj2world = m4.identity();
     var obj2world2NDC = m4.multiply(world2CameraNDC, obj2world);
     gl.uniformMatrix4fv(obj2world2NDC_loc, false, obj2world2NDC);
-    console.log('obj2world2NDC is :' + obj2world2NDC);
-    //gl.uniformMatrix4fv(obj2world2NDC_loc, false, m4.multiply(m4.inverse(world2Camera), m4.multiply(obj2world, proj)));
     
     //Create and Set world2cameraInverseTranspose 
     world2cameraInverseTranspose = m4.transpose(m4.inverse(world2Camera));
@@ -143,10 +140,76 @@ function render_cube(){
     gl.uniform3fv(light_dir_loc, m4.normalize(light_dir));
 
     /*Fill Cube Parameters*/
+    fill_fn(gl, position_loc, set_cube_position);
+    fill_fn(gl, normal_loc, set_cube_normal);
+    //setWorldViewPerspectiveMatrix
+    gl.drawArrays(gl.TRIANGLES, 0, 6*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
+  }
+}
+
+function render_f(){
+
+  // Get A WebGL context
+  var canvas = document.querySelector("#c");
+  var gl = canvas.getContext("webgl2");
+  if (!gl) {
+    console.log("ok... well apparently you don't have webgl2");
+    return;
+  }
+
+  // Link the two shaders into a program
+  var program = createProgramfromScripts(gl, ["cube-vertex-shader", "cube-fragment-shader"]);
+
+  // Get location of all [in] variables
+  var position_loc = gl.getAttribLocation(program, "a_position");
+  var normal_loc = gl.getAttribLocation(program, "a_normal");
+  var light_dir_loc = gl.getUniformLocation(program, "v_light_dir");
+  var obj2world2NDC_loc = gl.getUniformLocation(program, "obj2world2NDC");
+  //var world2cameraInverseTranspose_loc = gl.getUniformLocation(program, "world2cameraInverseTranspose"); //https://webgl2fundamentals.org/webgl/lessons/webgl-3d-lighting-directional.html
+
+
+  // Set ___________
+  var fieldOfView = 60;
+  var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+  var zNear = 1;
+  var zFar = 2000;
+  //QUOKKA
+  //shouldn't these be negative?
+
+  //camera args
+  var cameraPosition = [200, 200, 100];
+  var target = [0, 0, 0];
+  var up = [0, 1, 0];
+
+  var light_dir = [0.5, 0.7, 1];
+
+  drawScene();
+
+  function drawScene() {
+
+    // Canvas Setup
+    resize(gl.canvas);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); //clear everything
+    gl.enable(gl.CULL_FACE); //only draw front facing triangles
+    gl.enable(gl.DEPTH_TEST); //add depth buffer
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.useProgram(program);
+
+    var projectionMatrix = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
+    var cameraMatrix = m4.lookAt(cameraPosition, target, up);
+    var viewMatrix = m4.inverse(cameraMatrix);
+    var viewProjectionMatrix = m4.multiply(viewMatrix, projectionMatrix);
+    gl.uniformMatrix4fv(obj2world2NDC_loc, false, viewProjectionMatrix);
+
+
+    //Set light_dir
+    gl.uniform3fv(light_dir_loc, m4.normalize(light_dir));
+
+    /*Fill Cube Parameters*/
     fill_fn(gl, position_loc, set_f_position);
     fill_fn(gl, normal_loc, set_f_normal);
     //setWorldViewPerspectiveMatrix
-    gl.drawArrays(gl.TRIANGLES, 0, 16*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
+    gl.drawArrays(gl.TRIANGLES, 0, 2*3*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
   }
 }
 
@@ -184,8 +247,8 @@ function fill_fn(gl, attribute_location, _fn) {
 }
 
 //RENDER
-render_cube();
-
+//render_cube();
+render_f();
 
 
 

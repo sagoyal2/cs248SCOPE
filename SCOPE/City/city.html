@@ -61,7 +61,7 @@
 	in vec3 a_normal;
 
 	uniform mat4 obj2world2NDC;
-	uniform mat4 world2cameraInverseTranspose;
+	//uniform mat4 world2cameraInverseTranspose;
 
 	out vec3 v_normal;
 
@@ -71,7 +71,7 @@
 		gl_Position = obj2world2NDC * a_position;
 
 		//pass the normal to the fragment shader
-		v_normal = mat3(world2cameraInverseTranspose) * a_normal;
+		v_normal = a_normal;
 	}
 
 </script>
@@ -79,7 +79,7 @@
 
 <script id="cube-fragment-shader" type="FRAGMENT_SHADER">#version 300 es
 	precision highp float;
-	
+
 	in vec3 v_normal;
 
 	uniform vec3 v_light_dir;
