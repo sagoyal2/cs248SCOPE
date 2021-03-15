@@ -11,12 +11,15 @@
 
 	<div id = "main_container">
 		<canvas id="c"> </canvas>
-		<div id ="optional_settings"/></div>
+<!-- 		<div id ="optional_settings"/></div> -->
 	</div>
 </body>
 
 
 <!-- Later I should move these shaders into a different file -->
+
+<!-- PINK TRIANGLE SHADER -->
+<!-- ####################################################### -->
 <script id="pink-triangle-vertex-shader" type="VERTEX_SHADER">#version 300 es
 
 	// an attribute is an input (in) to a vertex shader.
@@ -33,7 +36,6 @@
 
 </script>
 
-
 <script id="pink-triangle-fragment-shader" type="FRAGMENT_SHADER">#version 300 es
 
 	// fragment shaders don't have a default precision so we need
@@ -49,9 +51,83 @@
 	}
 
 </script>
+<!-- ####################################################### -->
 
+<!-- CUBE SHADER -->
+<!-- ####################################################### -->
+<script id="cube-vertex-shader" type="VERTEX_SHADER">#version 300 es
+	
+	in vec4 a_position;
+	in vec3 a_normal;
+
+	uniform mat4 obj2world2NDC;
+	//uniform mat4 world2cameraInverseTranspose;
+
+	out vec3 v_normal;
+
+	void main(){
+
+		//set world view
+		gl_Position = obj2world2NDC * a_position;
+
+		//pass the normal to the fragment shader
+		v_normal = a_normal;
+	}
+
+</script>
+
+
+<script id="cube-fragment-shader" type="FRAGMENT_SHADER">#version 300 es
+	precision highp float;
+
+	in vec3 v_normal;
+
+	uniform vec3 v_light_dir;
+
+	out vec4 outColor;
+
+	void main(){
+		vec3 surfaceNormal = normalize(v_normal);
+		float light = dot(v_light_dir, surfaceNormal);
+
+		outColor = vec4(0.53, 0.36, 0.71, 0.7);
+		outColor.rgb *= light;
+	}
+
+</script>
+<!-- ####################################################### -->
 
 <!-- Code for rendering to screen -->
+<script src = "../resources/math/matrix4by4.js"> </script>
+<script src = "../resources/assets/cube.js"> </script>
 <script src = "../resources/setup/createAndCompile.js"> </script>
+<script src = "../resources/assets/building.js"> </script>
+<script src = "../resources/assets/window.js"> </script>
 <script src = "city.js"></script>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
