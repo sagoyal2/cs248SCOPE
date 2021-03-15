@@ -191,9 +191,9 @@ function render_cube_shadow(){
 
   function drawScene(now) {
 
-    now *= 0.0001;
-    var deltaTime = now - then;
-    then = now;
+    // now *= 0.0001;
+    // var deltaTime = now - then;
+    // then = now;
     // cameraPosition[0] = 5*Math.cos(now % 2*Math.PI);
     // cameraPosition[1] = 5*Math.sin(now % 2*Math.PI);
     //light_pos[0] = 5*Math.cos(now % 2*Math.PI);
@@ -329,12 +329,152 @@ function fill_fn(gl, attribute_location, _fn) {
 
 }
 
-//RENDER
+function render_building(){
+
+  // Get A WebGL context
+  var canvas = document.querySelector("#c");
+  var gl = canvas.getContext("webgl2");
+  if (!gl) {
+    console.log("ok... well apparently you don't have webgl2");
+    return;
+  }
+
+  // Link the two shaders into a program
+  var program = createProgramfromScripts(gl, ["cube-shadow-vertex-shader", "cube-shadow-fragment-shader"]);
+
+  // Get location of all [in] variables
+  var position_loc = gl.getAttribLocation(program, "a_position");
+  var normal_loc = gl.getAttribLocation(program, "a_normal");
+  var light_dir_loc = gl.getUniformLocation(program, "v_light_dir");
+  var obj2world2NDC_loc = gl.getUniformLocation(program, "obj2world2NDC");
+  //var world2cameraInverseTranspose_loc = gl.getUniformLocation(program, "world2cameraInverseTranspose"); //https://webgl2fundamentals.org/webgl/lessons/webgl-3d-lighting-directional.html
+
+
+  // Set ___________
+  var fieldOfView = 60;
+  var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+  var zNear = 1;
+  var zFar = 2000;
+  //QUOKKA
+  //shouldn't these be negative?
+
+  //camera args
+  var cameraPosition = [5, 5, 5];
+  var target = [0, 0, 0];
+  var up = [0, 1, 0];
+
+  var light_dir = [0.5, 0.7, 1];
+
+  drawScene();
+
+  function drawScene() {
+
+    // Canvas Setup
+    resize(gl.canvas);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); //clear everything
+    gl.enable(gl.CULL_FACE); //only draw front facing triangles
+    gl.enable(gl.DEPTH_TEST); //add depth buffer
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.useProgram(program);
+
+    // //Create and Set obj2world2NDC
+    // var proj = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
+    // var world2Camera = m4.createWorldToCameraMatrix(cameraPosition, target, up);
+    // var viewMatrix = m4.inverse(world2Camera);
+    // var world2CameraNDC = m4.multiply(proj, world2Camera);
+    // var obj2world = m4.identity();
+    // var obj2world2NDC = m4.multiply(world2CameraNDC, obj2world);
+    // gl.uniformMatrix4fv(obj2world2NDC_loc, false, obj2world2NDC);
+
+    var proj = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
+    var world2Camera = m4.lookAt(cameraPosition, target, up);
+    var proj2Camera = m4.multiply(world2Camera, proj);
+    gl.uniformMatrix4fv(obj2world2NDC_loc, false, proj2Camera);
+
+    //Create and Set world2cameraInverseTranspose 
+    // world2cameraInverseTranspose = m4.transpose(m4.inverse(world2Camera));
+    // gl.uniformMatrix4fv(world2cameraInverseTranspose_loc, false, world2cameraInverseTranspose);
+
+    //Set light_dir
+    gl.uniform3fv(light_dir_loc, m4.normalize(light_dir));
+
+    /*Fill Cube Parameters*/
+    fill_fn(gl, position_loc, set_building_position);
+    fill_fn(gl, normal_loc, set_building_normal);
+    //setWorldViewPerspectiveMatrix
+    gl.drawArrays(gl.TRIANGLES, 0, 6*2*3);//Cube = 6 faces, 2 triangles per face, 3 vertices per triangle
+  }
+}
+
+function render_window(){
+
+  // Get A WebGL context
+  var canvas = document.querySelector("#c");
+  var gl = canvas.getContext("webgl2");
+  if (!gl) {
+    console.log("ok... well apparently you don't have webgl2");
+    return;
+  }
+
+  // Link the two shaders into a program
+  var program = createProgramfromScripts(gl, ["cube-shadow-vertex-shader", "cube-shadow-fragment-shader"]);
+
+  // Get location of all [in] variables
+  var position_loc = gl.getAttribLocation(program, "a_position");
+  var normal_loc = gl.getAttribLocation(program, "a_normal");
+  var light_dir_loc = gl.getUniformLocation(program, "v_light_dir");
+  var obj2world2NDC_loc = gl.getUniformLocation(program, "obj2world2NDC");
+
+  // Set ___________
+  var fieldOfView = 60;
+  var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+  var zNear = 1;
+  var zFar = 2000;
+  //QUOKKA
+  //shouldn't these be negative?
+
+  //camera args
+  var cameraPosition = [5, 5, 5];
+  var target = [0, 0, 0];
+  var up = [0, 1, 0];
+
+  var light_dir = [0.5, 0.7, 1];
+
+  drawScene();
+
+  function drawScene() {
+
+    // Canvas Setup
+    resize(gl.canvas);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); //clear everything
+    gl.enable(gl.CULL_FACE); //only draw front facing triangles
+    gl.enable(gl.DEPTH_TEST); //add depth buffer
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.useProgram(program);
+    
+    var proj = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
+    var world2Camera = m4.lookAt(cameraPosition, target, up);
+    var proj2Camera = m4.multiply(world2Camera, proj);
+    gl.uniformMatrix4fv(obj2world2NDC_loc, false, proj2Camera);
+
+    //Set light_dir
+    gl.uniform3fv(light_dir_loc, m4.normalize(light_dir));
+
+    /*Fill Cube Parameters*/
+    fill_fn(gl, position_loc, set_window_position);
+    fill_fn(gl, normal_loc, set_window_normal);
+    //setWorldViewPerspectiveMatrix
+    gl.drawArrays(gl.TRIANGLES, 0, 6*2*3);//Cube = 6 faces, 2 triangles per face, 3 vertices per triangle
+  }
+}
+
+
+//render_cube_shadow();
 //render_cube_static();
-render_cube_shadow();
+//render_cube();
 //render_f();
-
-
+//render_building();
+render_window();
 
 
 
