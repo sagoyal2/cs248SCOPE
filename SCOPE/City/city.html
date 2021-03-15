@@ -53,22 +53,54 @@
 </script>
 <!-- ####################################################### -->
 
-<!-- CUBE SHADER -->
+<!-- CUBE STATIC SHADER -->
 <!-- ####################################################### -->
-<script id="cube-vertex-shader" type="VERTEX_SHADER">#version 300 es
+<script id="cube-static-vertex-shader" type="VERTEX_SHADER">#version 300 es
+	
+	in vec4 a_position;
+	in vec4 a_color;
+
+	uniform mat4 obj2world2NDC;
+
+	out vec4 v_color;
+
+	void main(){
+		gl_Position = obj2world2NDC * a_position; //screen space position 
+
+		//pass the color to the fragment shader
+		v_color = a_color;
+	}
+
+</script>
+
+
+<script id="cube-static-fragment-shader" type="FRAGMENT_SHADER">#version 300 es
+	precision highp float;
+
+	in vec4 v_color;
+
+	out vec4 outColor;
+
+	void main(){
+		outColor = v_color;
+	}
+
+</script>
+<!-- ####################################################### -->
+
+<!-- CUBE SHADOW SHADER -->
+<!-- ####################################################### -->
+<script id="cube-shadow-vertex-shader" type="VERTEX_SHADER">#version 300 es
 	
 	in vec4 a_position;
 	in vec3 a_normal;
 
 	uniform mat4 obj2world2NDC;
-	//uniform mat4 world2cameraInverseTranspose;
 
 	out vec3 v_normal;
 
 	void main(){
-
-		//set world view
-		gl_Position = obj2world2NDC * a_position;
+		gl_Position = obj2world2NDC * a_position; //screen space position 
 
 		//pass the normal to the fragment shader
 		v_normal = a_normal;
@@ -77,7 +109,7 @@
 </script>
 
 
-<script id="cube-fragment-shader" type="FRAGMENT_SHADER">#version 300 es
+<script id="cube-shadow-fragment-shader" type="FRAGMENT_SHADER">#version 300 es
 	precision highp float;
 
 	in vec3 v_normal;
@@ -88,10 +120,11 @@
 
 	void main(){
 		vec3 surfaceNormal = normalize(v_normal);
-		float light = dot(v_light_dir, surfaceNormal);
+		
+		float light_filter = dot(v_light_dir, surfaceNormal);
 
 		outColor = vec4(0.53, 0.36, 0.71, 0.7);
-		outColor.rgb *= light;
+		outColor.rgb *= light_filter;
 	}
 
 </script>

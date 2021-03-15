@@ -111,7 +111,9 @@ function set_cube_color(gl) {
 		200,  70, 120,
     ];
 
-    gl.bufferData( gl.ARRAY_BUFFER, new Uint8Array(colors), gl.STATIC_DRAW);
+    var color_2 = colors.map(function(item) { return item/256 });
+
+    gl.bufferData( gl.ARRAY_BUFFER, new Float32Array(color_2), gl.STATIC_DRAW);
 }
 
 function set_cube_normal(gl) {
@@ -133,13 +135,13 @@ function set_cube_normal(gl) {
 		 1,  0,   0,		 
 		 1,  0,   0,
 
-		//TOP (positive z)
-		 0,  0,   1,
-		 0,  0,   1,		 
-		 0,  0,   1,
-		 0,  0,   1,
-		 0,  0,   1,		 
-		 0,  0,   1, 
+		//TOP (positive y)
+		 0,  1,   0,
+		 0,  1,   0,		 
+		 0,  1,   0,
+		 0,  1,   0,
+		 0,  1,   0,		 
+		 0,  1,   0, 
 
 		//LEFT (negative x)
 		-1,  0,   0,
@@ -149,7 +151,7 @@ function set_cube_normal(gl) {
 		-1,  0,   0,		 
 		-1,  0,   0,
 
-		//BACK (positive z)
+		//BACK (negative z)
 		 0,  0,  -1,
 		 0,  0,  -1,		 
 		 0,  0,  -1,
@@ -158,12 +160,12 @@ function set_cube_normal(gl) {
 		 0,  0,  -1,
 
 		//BOTTOM (negative z)
-		 0,  0,  -1,
-		 0,  0,  -1,		 
-		 0,  0,  -1,
-		 0,  0,  -1,
-		 0,  0,  -1,		 
-		 0,  0,  -1,
+		 0,  -1,  0,
+		 0,  -1,  0,		 
+		 0,  -1,  0,
+		 0,  -1,  0,
+		 0,  -1,  0,		 
+		 0,  -1,  0,
 	];
 
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
