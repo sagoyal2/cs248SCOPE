@@ -547,6 +547,67 @@ function render_window(){
 }
 
 
+function render_lamppost(){
+
+  // Get A WebGL context
+  var canvas = document.querySelector("#c");
+  var gl = canvas.getContext("webgl2");
+  if (!gl) {
+    console.log("ok... well apparently you don't have webgl2");
+    return;
+  }
+
+  // Link the two shaders into a program
+  var program = createProgramfromScripts(gl, ["cube-static-vertex-shader", "cube-static-fragment-shader"]);
+
+  // Get location of all [in] variables
+  var position_loc = gl.getAttribLocation(program, "a_position");
+  var color_loc = gl.getAttribLocation(program, "a_color");
+  var obj2world2NDC_loc = gl.getUniformLocation(program, "obj2world2NDC");
+
+  // Set ___________
+  var fieldOfView = 60;
+  var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+  var zNear = 1;
+  var zFar = 2000;
+  //QUOKKA
+  //shouldn't these be negative?
+
+  //camera args
+  var cameraPosition = [5, 5, 5];
+  var target = [0, 0, 0];
+  var up = [0, 1, 0];
+
+  var light_dir = [0.5, 0.7, 1];
+
+  drawScene();
+
+  function drawScene() {
+
+    // Canvas Setup
+    resize(gl.canvas);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); //clear everything
+    gl.enable(gl.CULL_FACE); //only draw front facing triangles
+    gl.enable(gl.DEPTH_TEST); //add depth buffer
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.useProgram(program);
+    
+    var proj = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
+    var world2Camera = m4.lookAt(cameraPosition, target, up);
+    var proj2Camera = m4.multiply(world2Camera, proj);
+    gl.uniformMatrix4fv(obj2world2NDC_loc, false, proj2Camera);
+
+    //Set light_dir
+    // gl.uniform3fv(light_dir_loc, m4.normalize(light_dir));
+
+    /*Fill Cube Parameters*/
+    fill_fn(gl, position_loc, set_lamppost_position);
+    fill_fn(gl, color_loc, set_lamppost_color);
+    //setWorldViewPerspectiveMatrix
+    gl.drawArrays(gl.TRIANGLES, 0, 6*2*3*2 + 6);//Cube = 6 faces, 2 triangles per face, 3 vertices per triangle
+  }
+}
+
 render_cube_camera();
 //render_cube_shadow();
 //render_cube_static();

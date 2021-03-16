@@ -45,9 +45,9 @@ function render_City(){
 
   function drawScene(now) {
 
-    //now *= 0.00001;
+    now *= 0.00001;
     //cameraPosition[1] -= now;
-    //cameraPosition[2] -= now;
+    cameraPosition[2] -= now;
 
 
     // Canvas Setup
@@ -104,7 +104,30 @@ function render_City(){
     var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
     var camera2world = m4.lookAt(cameraPosition, target, up);
     var obj2World = m4.multiply(camera2world, projectObject);
+    //var moveObjectInWorld = m4.multiply(m4.yRotation(-degToRad(20)), m4.translation(-2.0, 0.0, 0.0));
+    var moveObjectInWorld = m4.scaling(0.2, 0.2, 0.2);
+    obj2World = m4.multiply(moveObjectInWorld, obj2World);
+    gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2World);
+
+    //Set obj2world
+    gl.uniformMatrix4fv(obj2world_loc_camera, false, moveObjectInWorld);
+
+    //Set cameraPos
+    gl.uniform3fv(camera_loc_camera, cameraPosition);
+
+    /*Fill Cube Parameters*/
+    fill_fn(gl, position_loc_camera, set_lamppost_position);
+    fill_fn(gl, color_loc_camera, set_lamppost_color);
+    //setWorldViewPerspectiveMatrix
+    gl.drawArrays(gl.TRIANGLES, 0, 13*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
+
+
+    //Create and Set obj2world2NDC
+    var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
+    var camera2world = m4.lookAt(cameraPosition, target, up);
+    var obj2World = m4.multiply(camera2world, projectObject);
     var moveObjectInWorld = m4.multiply(m4.yRotation(-degToRad(20)), m4.translation(-2.0, 0.0, 0.0));
+    //var moveObjectInWorld = m4.identity();
     obj2World = m4.multiply(moveObjectInWorld, obj2World);
     gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2World);
 
@@ -130,10 +153,8 @@ function render_City(){
 fill_fn:
 function will create a buffer and apply the passed in function, 
 to the attribute location
-
 @params {!WebGLRenderingContext} gl
 @params {function} _fn
-
 Ex: 
 _fn: set_N3d, set_N3dNormal, etc.
 */
@@ -159,13 +180,4 @@ function fill_fn(gl, attribute_location, _fn) {
 
 }
 
-
 render_City();
-
-
-
-
-
-
-
-
