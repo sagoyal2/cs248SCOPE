@@ -180,4 +180,146 @@ function fill_fn(gl, attribute_location, _fn) {
 
 }
 
-render_City();
+//render_City();
+
+
+
+
+function render_litter_lamppost(){
+  // Get A WebGL context
+  var canvas = document.querySelector("#c");
+  var gl = canvas.getContext("webgl2");
+  if (!gl) {
+    console.log("ok... well apparently you don't have webgl2");
+    return;
+  }
+
+  // Link shaders into a program
+  var cube_camera_program = createProgramfromScripts(gl, ["cube-camera-vertex-shader", "cube-camera-fragment-shader"]);
+
+  var position_loc_camera = gl.getAttribLocation(cube_camera_program, "a_position");
+  var color_loc_camera = gl.getAttribLocation(cube_camera_program, "a_color");
+  var camera_loc_camera = gl.getUniformLocation(cube_camera_program, "cameraPos");
+  var obj2world_loc_camera = gl.getUniformLocation(cube_camera_program, "obj2world");
+  var obj2world2NDC_loc_camera = gl.getUniformLocation(cube_camera_program, "obj2world2NDC");
+
+
+  var cube_static_program = createProgramfromScripts(gl, ["cube-static-vertex-shader", "cube-static-fragment-shader"]);
+
+  var position_loc_static = gl.getAttribLocation(cube_static_program, "a_position");
+  var color_loc_static = gl.getAttribLocation(cube_static_program, "a_color");
+  var obj2world2NDC_loc_static = gl.getUniformLocation(cube_static_program, "obj2world2NDC");
+
+
+  // Set ___________
+  var fieldOfView = 60;
+  var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+  var zNear = 1;
+  var zFar = 2000;
+
+  //camera args
+  var cameraPosition = [0, 5, 15];
+  //var cameraPosition = [0, 5, 5];
+  //var cameraPosition = [0, 3, 5]
+  var target = [0, 0, 0];
+  var up = [0, 1, 0];
+
+  var groundPlaneDim = 8.0;
+
+
+  var then = 0;
+  requestAnimationFrame(drawScene);
+
+  function drawScene(now) {
+
+    now *= 0.00001;
+    cameraPosition[2] -= now;
+
+    // Canvas Setup
+    resize(gl.canvas);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); //clear everything
+    gl.enable(gl.CULL_FACE); //only draw front facing triangles
+    gl.enable(gl.DEPTH_TEST); //add depth buffer
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+    //Program for Ground
+    gl.useProgram(cube_static_program);
+
+    //Create and Set obj2world2NDC
+    var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
+    var camera2world = m4.lookAt(cameraPosition, target, up);
+    var obj2World = m4.multiply(camera2world, projectObject);
+    //var moveObjectInWorld = m4.multiply(m4.yRotation(degToRad(20)), m4.translation(2.0, 0.0, 0.0));
+    var moveObjectInWorld = m4.multiply(m4.translation(0, -1/groundPlaneDim, 0), m4.scaling(groundPlaneDim, groundPlaneDim, groundPlaneDim));
+    obj2World = m4.multiply(moveObjectInWorld, obj2World);
+    gl.uniformMatrix4fv(obj2world2NDC_loc_static, false, obj2World);
+
+
+    /*Fill Cube Parameters*/
+    fill_fn(gl, position_loc_static, set_ground_position);
+    fill_fn(gl, color_loc_static, set_ground_color);
+    //setWorldViewPerspectiveMatrix
+    gl.drawArrays(gl.TRIANGLES, 0, 1*2*3);//Ground = 1 faces, 2 triangles per face, 3 verticies per triangle
+
+
+    //Program for Buildings
+    gl.useProgram(cube_camera_program);
+
+
+    var numLampPost = groundPlaneDim + 1;
+    litter(numLampPost);
+
+    function litter(numLampPost){
+      /*********** Lamppost **************/
+      //Create and Set obj2world2NDC
+      var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
+      var camera2world = m4.lookAt(cameraPosition, target, up);
+      var obj2World = m4.multiply(camera2world, projectObject);
+      
+      for(let i  = 0; i < numLampPost+1; i++){
+        let x_pos = i - numLampPost/2;
+        //x_pos *= groundPlaneDim/2;
+
+        for(let j  = 0; j < numLampPost+1; j++){
+          let z_pos = j - numLampPost/2;
+          //z_pos *= groundPlaneDim/2;
+
+          //console.log("x_pos: " + x_pos + ", z_pos: " + z_pos);
+          //if(x_pos < 0 && z_pos < 0){
+
+            var moveObjectInWorld = m4.multiply(m4.scaling(0.3, 0.3, 0.3), m4.translation(x_pos, 0, z_pos));
+            var obj2world2NDC = m4.multiply(moveObjectInWorld, obj2World);
+            gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2world2NDC);
+
+            //Set obj2world
+            gl.uniformMatrix4fv(obj2world_loc_camera, false, moveObjectInWorld);
+
+            //Set cameraPos
+            gl.uniform3fv(camera_loc_camera, cameraPosition);
+
+            /*Fill Cube Parameters*/
+            fill_fn(gl, position_loc_camera, set_lamppost_position);
+            fill_fn(gl, color_loc_camera, set_lamppost_color);
+            //setWorldViewPerspectiveMatrix
+            gl.drawArrays(gl.TRIANGLES, 0, 13*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
+
+          //}
+        }   
+      }
+    }
+
+    //draw cube again with rotated camera
+    requestAnimationFrame(drawScene);
+  }
+
+}
+
+render_litter_lamppost();
+
+
+
+
+
+
+
+

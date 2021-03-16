@@ -36,3 +36,15 @@ function set_ground_color(gl) {
     gl.bufferData( gl.ARRAY_BUFFER, new Float32Array(color_2), gl.STATIC_DRAW);
 }
 
+//QUOKKA
+/*
+
+Design:
+
+we choose to use a depth buffer esque way of assigning color to each fragment, not
+real lighting since that was already covered in lecture
+
+we use multiple shaders in the same scene
+
+
+*/
