@@ -218,22 +218,19 @@ function render_litter_lamppost(){
   var zFar = 2000;
 
   //camera args
-  var cameraPosition = [0, 5, 15];
+  var cameraPosition = [0, 15, 12];
   //var cameraPosition = [0, 5, 5];
   //var cameraPosition = [0, 3, 5]
   var target = [0, 0, 0];
   var up = [0, 1, 0];
 
-  var groundPlaneDim = 8.0;
+  var groundPlaneDim = 13.0;
 
 
   var then = 0;
   requestAnimationFrame(drawScene);
 
   function drawScene(now) {
-
-    now *= 0.00001;
-    cameraPosition[2] -= now;
 
     // Canvas Setup
     resize(gl.canvas);
@@ -266,7 +263,7 @@ function render_litter_lamppost(){
     gl.useProgram(cube_camera_program);
 
 
-    var numLampPost = groundPlaneDim + 1;
+    var numLampPost = 20;
     litter(numLampPost);
 
     function litter(numLampPost){
@@ -276,18 +273,18 @@ function render_litter_lamppost(){
       var camera2world = m4.lookAt(cameraPosition, target, up);
       var obj2World = m4.multiply(camera2world, projectObject);
       
-      for(let i  = 0; i < numLampPost+1; i++){
+      for(let i  = 0; i < numLampPost; i++){
         let x_pos = i - numLampPost/2;
         //x_pos *= groundPlaneDim/2;
 
-        for(let j  = 0; j < numLampPost+1; j++){
+        for(let j  = 0; j < numLampPost; j++){
           let z_pos = j - numLampPost/2;
           //z_pos *= groundPlaneDim/2;
 
           //console.log("x_pos: " + x_pos + ", z_pos: " + z_pos);
-          //if(x_pos < 0 && z_pos < 0){
+          if(searchForArray(lamps, [i,j])){
 
-            var moveObjectInWorld = m4.multiply(m4.scaling(0.3, 0.3, 0.3), m4.translation(x_pos, 0, z_pos));
+            var moveObjectInWorld = m4.multiply(m4.scaling(0.2, 0.2, 0.2), m4.translation(x_pos, 0, z_pos));
             var obj2world2NDC = m4.multiply(moveObjectInWorld, obj2World);
             gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2world2NDC);
 
@@ -303,7 +300,7 @@ function render_litter_lamppost(){
             //setWorldViewPerspectiveMatrix
             gl.drawArrays(gl.TRIANGLES, 0, 13*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
 
-          //}
+          }
         }   
       }
     }
@@ -313,6 +310,31 @@ function render_litter_lamppost(){
   }
 
 }
+
+//https://stackoverflow.com/questions/19543514/check-whether-an-array-exists-in-an-array-of-arrays
+function searchForArray(haystack, needle){
+  var i, j, current;
+  for(i = 0; i < haystack.length; ++i){
+    if(needle.length === haystack[i].length){
+      current = haystack[i];
+      for(j = 0; j < needle.length && needle[j] === current[j]; ++j);
+      if(j === needle.length)
+        return true;
+    }
+  }
+  return false;
+}
+
+var lamps = [ [0,18], [2, 18], [4, 18], [6, 18], [8, 18], [10, 18], [16, 18], [19, 18],
+              [0,15], [2, 15], [4, 15], [6, 15], [8, 15], [11, 17], [11, 15], [16, 16], [19, 16], 
+                                                                              [16, 14], [19, 14],
+              [8, 13], [11, 13], [16,12], [19, 12], [8, 11], [11, 11], [16, 10], [19, 10],
+              [2, 9], [4, 9], [6, 9], [8, 9], [11, 9], [16, 8], [19, 8],
+              [2, 7], [11, 7], [6, 6], [8, 6], [16, 6], [19, 6],
+              [2, 5], [5, 5], [11, 5], [13, 5], [15, 5], [8, 4], [2, 3], [5, 3],
+              [8, 2], [10, 2], [12, 2], [14, 2], [16, 2], [19, 2],
+              [2, 1], [5, 1], [16, 0], [19, 0],
+            ];
 
 render_litter_lamppost();
 
