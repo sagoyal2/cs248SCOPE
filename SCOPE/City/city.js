@@ -92,7 +92,6 @@ function render_cube_static(){
   var color_loc = gl.getAttribLocation(program, "a_color");
   var obj2world2NDC_loc = gl.getUniformLocation(program, "obj2world2NDC");
 
-
   // Set ___________
   var fieldOfView = 60;
   var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
@@ -134,7 +133,6 @@ function render_cube_static(){
     obj2World = m4.multiply(moveObjectInWorld, obj2World);
     gl.uniformMatrix4fv(obj2world2NDC_loc, false, obj2World);
 
-
     /*Fill Cube Parameters*/
     fill_fn(gl, position_loc, set_cube_position);
     fill_fn(gl, color_loc, set_cube_color);
@@ -146,6 +144,86 @@ function render_cube_static(){
   }
 }
 
+
+function render_cube_camera(){
+  // Get A WebGL context
+  var canvas = document.querySelector("#c");
+  var gl = canvas.getContext("webgl2");
+  if (!gl) {
+    console.log("ok... well apparently you don't have webgl2");
+    return;
+  }
+
+  // Link the two shaders into a program
+  var program = createProgramfromScripts(gl, ["cube-camera-vertex-shader", "cube-camera-fragment-shader"]);
+
+  // Get location of all [in] variables
+  var position_loc = gl.getAttribLocation(program, "a_position");
+  var color_loc = gl.getAttribLocation(program, "a_color");
+
+  var camera_loc = gl.getUniformLocation(program, "cameraPos");
+  var obj2world_loc = gl.getUniformLocation(program, "obj2world");
+  var obj2world2NDC_loc = gl.getUniformLocation(program, "obj2world2NDC");
+
+
+  // Set ___________
+  var fieldOfView = 60;
+  var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+  var zNear = 1;
+  var zFar = 2000;
+  //QUOKKA
+  //shouldn't these be negative?
+
+  //camera args
+  var cameraPosition = [5, 5, 5];
+  //var cameraPosition = [0, 5, 5];
+  //var cameraPosition = [0, 3, 5]
+  var target = [0, 0, 0];
+  var up = [0, 1, 0];
+
+  var light_pos = [1, 1, 1]; 
+
+  // light_pos[1] = 1*Math.cos(degToRad(45));
+  // light_pos[2] = 1*Math.sin(degToRad(45));
+
+  var then = 0;
+  requestAnimationFrame(drawScene);
+
+  function drawScene(now) {
+
+    // Canvas Setup
+    resize(gl.canvas);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); //clear everything
+    gl.enable(gl.CULL_FACE); //only draw front facing triangles
+    gl.enable(gl.DEPTH_TEST); //add depth buffer
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.useProgram(program);
+
+    //Create and Set obj2world2NDC
+    var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
+    var camera2world = m4.lookAt(cameraPosition, target, up);
+    var obj2World = m4.multiply(camera2world, projectObject);
+    //var moveObjectInWorld = m4.multiply(m4.yRotation(-degToRad(20)), m4.translation(2.0, 0.0, 0.0));
+    var moveObjectInWorld = m4.identity();
+    obj2World = m4.multiply(moveObjectInWorld, obj2World);
+    gl.uniformMatrix4fv(obj2world2NDC_loc, false, obj2World);
+
+    //Set obj2world
+    gl.uniformMatrix4fv(obj2world_loc, false, moveObjectInWorld);
+
+    //Set cameraPos
+    gl.uniform3fv(camera_loc, cameraPosition);
+
+    /*Fill Cube Parameters*/
+    fill_fn(gl, position_loc, set_cube_position);
+    fill_fn(gl, color_loc, set_cube_color);
+    //setWorldViewPerspectiveMatrix
+    gl.drawArrays(gl.TRIANGLES, 0, 6*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
+
+    //draw cube again with rotated camera
+    requestAnimationFrame(drawScene);
+  }
+}
 
 function render_cube_shadow(){
 
@@ -175,7 +253,7 @@ function render_cube_shadow(){
   //shouldn't these be negative?
 
   //camera args
-  var cameraPosition = [5, 5, 5];
+  var cameraPosition = [0, 5, 5];
   //var cameraPosition = [0, 5, 5];
   //var cameraPosition = [0, 3, 5]
   var target = [0, 0, 0];
@@ -212,7 +290,7 @@ function render_cube_shadow(){
     var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
     var camera2world = m4.lookAt(cameraPosition, target, up);
     var obj2World = m4.multiply(camera2world, projectObject);
-    var moveObjectInWorld = m4.translation(0.0, 0, 0);
+    var moveObjectInWorld = m4.multiply(m4.yRotation(-degToRad(20)), m4.translation(2.0, 0.0, 0.0));
     obj2World = m4.multiply(moveObjectInWorld, obj2World);
     gl.uniformMatrix4fv(obj2world2NDC_loc, false, obj2World);
 
@@ -469,12 +547,13 @@ function render_window(){
 }
 
 
+render_cube_camera();
 //render_cube_shadow();
 //render_cube_static();
 //render_cube();
 //render_f();
 //render_building();
-render_window();
+//render_window();
 
 
 

@@ -88,6 +88,69 @@
 </script>
 <!-- ####################################################### -->
 
+<!-- CUBE CAMERA SHADER -->
+<!-- ####################################################### -->
+<script id="cube-camera-vertex-shader" type="VERTEX_SHADER">#version 300 es
+	
+	in vec4 a_position;
+	in vec4 a_color;
+
+	uniform mat4 obj2world;
+	uniform mat4 obj2world2NDC;
+
+	out vec3 v_position;
+	out vec4 v_color;
+
+	void main(){
+		gl_Position = obj2world2NDC * a_position; //screen space position 
+		v_position = vec3(obj2world * a_position);
+
+		v_color = a_color;
+
+		//vec3 pos_to_camera = position - cameraPos;
+		//float dist = sqrt(dot(pos_to_camera, pos_to_camera));
+
+		//v_color = a_color;
+		//v_color.w = 0.7;
+
+		//if(dist > 7.0){
+		//	v_color.w = 2.0;
+		//}
+	}
+
+</script>
+
+
+<script id="cube-camera-fragment-shader" type="FRAGMENT_SHADER">#version 300 es
+	precision highp float;
+
+	in vec3 v_position;
+	in vec4 v_color;
+
+	uniform vec3 cameraPos;
+
+	out vec4 outColor;
+
+	void main(){
+		//vec3 pos_to_camera = v_camera_pos - vec3(v_position);
+		//float light_filter = dot(pos_to_camera, pos_to_camera);
+		//outColor = vec4(0.53, 0.36, 0.71, light_filter);
+		//outColor.rgb *= 0.01*light_filter;
+
+		vec3 pos_to_camera = v_position - cameraPos;
+		float dist = sqrt(dot(pos_to_camera, pos_to_camera));
+
+		outColor = v_color;
+		outColor.w = 0.7;
+
+		if(dist > 7.5){
+			outColor.w *= pow(0.9, dist-7.5);
+		}
+	}
+
+</script>
+<!-- ####################################################### -->
+
 <!-- CUBE SHADOW SHADER -->
 <!-- ####################################################### -->
 <script id="cube-shadow-vertex-shader" type="VERTEX_SHADER">#version 300 es
