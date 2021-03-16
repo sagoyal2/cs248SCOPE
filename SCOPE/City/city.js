@@ -218,19 +218,26 @@ function render_litter_lamppost(){
   var zFar = 2000;
 
   //camera args
-  var cameraPosition = [0, 15, 12];
-  //var cameraPosition = [0, 5, 5];
-  //var cameraPosition = [0, 3, 5]
+  var cameraPosition = [-12, 15, -15];
+  //var cameraPosition = [0, 35, 0.1];
+  //var cameraPosition = [0, 35, 0.1];
   var target = [0, 0, 0];
   var up = [0, 1, 0];
 
-  var groundPlaneDim = 13.0;
+  var groundPlaneDim = 12.0;
 
 
   var then = 0;
   requestAnimationFrame(drawScene);
 
   function drawScene(now) {
+
+    //var cameraPosition = [2, 15, 13]; -2
+    //var cameraPosition = [-12, 15, -15]; +2
+    now *= 0.00001;
+    cameraPosition[0] += 2*now;
+    cameraPosition[1] -= 0.5*now;
+    cameraPosition[2] += 2*now;
 
     // Canvas Setup
     resize(gl.canvas);
@@ -239,34 +246,75 @@ function render_litter_lamppost(){
     gl.enable(gl.DEPTH_TEST); //add depth buffer
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
+
     //Program for Ground
     gl.useProgram(cube_static_program);
+    add_ground_plane();
 
-    //Create and Set obj2world2NDC
-    var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
-    var camera2world = m4.lookAt(cameraPosition, target, up);
-    var obj2World = m4.multiply(camera2world, projectObject);
-    //var moveObjectInWorld = m4.multiply(m4.yRotation(degToRad(20)), m4.translation(2.0, 0.0, 0.0));
-    var moveObjectInWorld = m4.multiply(m4.translation(0, -1/groundPlaneDim, 0), m4.scaling(groundPlaneDim, groundPlaneDim, groundPlaneDim));
-    obj2World = m4.multiply(moveObjectInWorld, obj2World);
-    gl.uniformMatrix4fv(obj2world2NDC_loc_static, false, obj2World);
-
-
-    /*Fill Cube Parameters*/
-    fill_fn(gl, position_loc_static, set_ground_position);
-    fill_fn(gl, color_loc_static, set_ground_color);
-    //setWorldViewPerspectiveMatrix
-    gl.drawArrays(gl.TRIANGLES, 0, 1*2*3);//Ground = 1 faces, 2 triangles per face, 3 verticies per triangle
-
-
-    //Program for Buildings
+    //Program for Buildings / Lampposts / Cars
     gl.useProgram(cube_camera_program);
 
-
+    //Add Lamppost
     var numLampPost = 20;
-    litter(numLampPost);
+    litter_lampposts(numLampPost);
 
-    function litter(numLampPost){
+    //Add Big Buildings
+    add_building(-6.0, 4, 1.6, 3.2, 6, 2.3); 
+    add_building(.5, 2, -10, 4.7, 4, 1);
+    add_building(3.5, 4, -3.0, 1.8, 5.7, 1.3);
+    add_building(3.5, 4, -3.0, 1.8, 5.7, 1.3);
+    add_building(4.6, 2, 3.2, 0.9, 4, 4.5);
+
+    //Add Small Buildings
+    add_building(2.4, 1, 0.5, .8, 2.1, 1.2);
+    add_building(2.4, 1, 3.5, .8, 2.4, 1.2);
+    add_building(2.4, 1, 6.5, .8, 2.2, 1.2);
+    add_building(-10, 1, -8.5, 1.2, 2.3, 2);
+    add_building(-10, 1, -3.4, 1.2, 2.2,1.5);
+    add_building(-3.3, 1.2, -6.5,  .9, 2.7, 1.5);
+
+    function add_building(tx, ty, tz, sx, sy, sz){
+      //Create and Set obj2world2NDC
+      var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
+      var camera2world = m4.lookAt(cameraPosition, target, up);
+      var obj2World = m4.multiply(camera2world, projectObject);
+      var moveObjectInWorld = m4.multiply(m4.scaling(sx, sy, sz), m4.translation(tx, ty, tz));
+      obj2World = m4.multiply(moveObjectInWorld, obj2World);
+      gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2World);
+
+      //Set obj2world
+      gl.uniformMatrix4fv(obj2world_loc_camera, false, moveObjectInWorld);
+
+      //Set cameraPos
+      gl.uniform3fv(camera_loc_camera, cameraPosition);
+
+      /*Fill Cube Parameters*/
+      fill_fn(gl, position_loc_camera, set_cube_position);
+      fill_fn(gl, color_loc_camera, set_cube_color);
+      //setWorldViewPerspectiveMatrix
+      gl.drawArrays(gl.TRIANGLES, 0, 6*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
+    }
+
+    function add_ground_plane(){
+      //Create and Set obj2world2NDC
+      var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
+      var camera2world = m4.lookAt(cameraPosition, target, up);
+      var obj2World = m4.multiply(camera2world, projectObject);
+      //var moveObjectInWorld = m4.multiply(m4.yRotation(degToRad(20)), m4.translation(2.0, 0.0, 0.0));
+      var moveObjectInWorld = m4.multiply(m4.translation(-1/groundPlaneDim, -1/groundPlaneDim, -1/groundPlaneDim), m4.scaling(groundPlaneDim, groundPlaneDim, groundPlaneDim));
+      obj2World = m4.multiply(moveObjectInWorld, obj2World);
+      gl.uniformMatrix4fv(obj2world2NDC_loc_static, false, obj2World);
+
+
+      /*Fill Cube Parameters*/
+      fill_fn(gl, position_loc_static, set_ground_position);
+      fill_fn(gl, color_loc_static, set_ground_color);
+      //setWorldViewPerspectiveMatrix
+      gl.drawArrays(gl.TRIANGLES, 0, 1*2*3);//Ground = 1 faces, 2 triangles per face, 3 verticies per triangle
+    
+    }
+
+    function litter_lampposts(numLampPost){
       /*********** Lamppost **************/
       //Create and Set obj2world2NDC
       var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
@@ -284,7 +332,7 @@ function render_litter_lamppost(){
           //console.log("x_pos: " + x_pos + ", z_pos: " + z_pos);
           if(searchForArray(lamps, [i,j])){
 
-            var moveObjectInWorld = m4.multiply(m4.scaling(0.2, 0.2, 0.2), m4.translation(x_pos, 0, z_pos));
+            var moveObjectInWorld = m4.multiply(m4.scaling(0.2, 0.2, 0.2), m4.translation(x_pos, -0.4, z_pos));
             var obj2world2NDC = m4.multiply(moveObjectInWorld, obj2World);
             gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2world2NDC);
 
