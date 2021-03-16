@@ -378,10 +378,8 @@ function render_f(){
 fill_fn:
 function will create a buffer and apply the passed in function, 
 to the attribute location
-
 @params {!WebGLRenderingContext} gl
 @params {function} _fn
-
 Ex: 
 _fn: set_N3d, set_N3dNormal, etc.
 */
@@ -546,6 +544,68 @@ function render_window(){
   }
 }
 
+function render_lamppost(){
+
+  // Get A WebGL context
+  var canvas = document.querySelector("#c");
+  var gl = canvas.getContext("webgl2");
+  if (!gl) {
+    console.log("ok... well apparently you don't have webgl2");
+    return;
+  }
+
+  // Link the two shaders into a program
+  var program = createProgramfromScripts(gl, ["cube-shadow-vertex-shader", "cube-shadow-fragment-shader"]);
+
+  // Get location of all [in] variables
+  var position_loc = gl.getAttribLocation(program, "a_position");
+  var normal_loc = gl.getAttribLocation(program, "a_normal");
+  var light_dir_loc = gl.getUniformLocation(program, "v_light_dir");
+  var obj2world2NDC_loc = gl.getUniformLocation(program, "obj2world2NDC");
+
+  // Set ___________
+  var fieldOfView = 60;
+  var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+  var zNear = 1;
+  var zFar = 2000;
+  //QUOKKA
+  //shouldn't these be negative?
+
+  //camera args
+  var cameraPosition = [5, 5, 5];
+  var target = [0, 0, 0];
+  var up = [0, 1, 0];
+
+  var light_dir = [0.5, 0.7, 1];
+
+  drawScene();
+
+  function drawScene() {
+
+    // Canvas Setup
+    resize(gl.canvas);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); //clear everything
+    gl.enable(gl.CULL_FACE); //only draw front facing triangles
+    gl.enable(gl.DEPTH_TEST); //add depth buffer
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.useProgram(program);
+    
+    var proj = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
+    var world2Camera = m4.lookAt(cameraPosition, target, up);
+    var proj2Camera = m4.multiply(world2Camera, proj);
+    gl.uniformMatrix4fv(obj2world2NDC_loc, false, proj2Camera);
+
+    //Set light_dir
+    gl.uniform3fv(light_dir_loc, m4.normalize(light_dir));
+
+    /*Fill Cube Parameters*/
+    fill_fn(gl, position_loc, set_lamppost_position);
+    fill_fn(gl, normal_loc, set_lamppost_normal);
+    //setWorldViewPerspectiveMatrix
+    gl.drawArrays(gl.TRIANGLES, 0, 6*2*3*2 + 6);//Cube = 6 faces, 2 triangles per face, 3 vertices per triangle
+  }
+}
+
 
 render_cube_camera();
 //render_cube_shadow();
@@ -554,181 +614,3 @@ render_cube_camera();
 //render_f();
 //render_building();
 //render_window();
-
-
-
-// function square(){
-
-//   // Get A WebGL context
-//   var canvas = document.querySelector("#c");
-//   var gl = canvas.getContext("webgl2");
-//   if (!gl) {
-//   	console.log("ok... well apparently you don't have webgl2");
-//     return;
-//   }
-
-
-//   // Link the two shaders into a program
-//   var program = createProgramfromScripts(gl, ["pink-triangle-vertex-shader", "pink-triangle-fragment-shader"]);
-
-//   // look up where the vertex data needs to go.
-//   var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
-
-//   // Create a buffer and put three 2d clip space points in it
-//   var positionBuffer = gl.createBuffer();
-
-//   // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
-//   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-//   var positions = [
-//     0, 0,
-//     0, 0.5,
-//     0.5, 0,
-//     0.5, 0,
-//     0, 0.5, 
-//     0.5, 0.5,
-//   ];
-//   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-
-//   // Create a vertex array object (attribute state)
-//   var vao = gl.createVertexArray();
-
-//   // and make it the one we're currently working with
-//   gl.bindVertexArray(vao);
-
-//   // Turn on the attribute
-//   gl.enableVertexAttribArray(positionAttributeLocation);
-
-//   // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-//   var size = 2;          // 2 components per iteration
-//   var type = gl.FLOAT;   // the data is 32bit floats
-//   var normalize = false; // don't normalize the data
-//   var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-//   var offset = 0;        // start at the beginning of the buffer
-//   gl.vertexAttribPointer(
-//       positionAttributeLocation, size, type, normalize, stride, offset);
-
-//   resize(gl.canvas);
-
-//   // Tell WebGL how to convert from clip space to pixels
-//   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-
-//   // Clear the canvas
-//   gl.clearColor(0, 0, 0, 0);
-//   gl.clear(gl.COLOR_BUFFER_BIT);
-
-//   // Tell it to use our program (pair of shaders)
-//   gl.useProgram(program);
-
-//   // Bind the attribute/buffer set we want.
-//   gl.bindVertexArray(vao);
-
-//   // draw
-//   var primitiveType = gl.TRIANGLES;
-//   var offset = 0;
-//   var count = 6;
-//   gl.drawArrays(primitiveType, offset, count);	
-// }
-
-
-
-// function cube(){
-
-//   // Get A WebGL context
-//   var canvas = document.querySelector("#c");
-//   var gl = canvas.getContext("webgl2");
-//   if (!gl) {
-//   	console.log("ok... well apparently you don't have webgl2");
-//     return;
-//   }
-
-
-//   // Link the two shaders into a program
-//   var program = createProgramfromScripts(gl, ["pink-triangle-vertex-shader", "pink-triangle-fragment-shader"]);
-
-//   // look up where the vertex data needs to go.
-//   var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
-
-//   // Create a buffer and put three 2d clip space points in it
-//   var positionBuffer = gl.createBuffer();
-
-//   // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
-//   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-//   var positions = [
-//     // front face
-//     -1.0, -1.0,  1.0,
-//      1.0, -1.0,  1.0,
-//     1.0,  1.0,  1.0,
-//     -1.0,  1.0,  1.0,
-    
-//     // back face 
-//     -1.0, -1.0, -1.0,
-//     -1.0,  1.0, -1.0,
-//     1.0,  1.0, -1.0,
-//     1.0, -1.0, -1.0,
-    
-//     // bottom face 
-//     -1.0, -1.0, -1.0,
-//      1.0, -1.0, -1.0,
-//     1.0, -1.0,  1.0,
-//     -1.0, -1.0,  1.0,
-    
-//     // right face 
-//     1.0, -1.0, -1.0,
-//     1.0,  1.0, -1.0,
-//     1.0,  1.0,  1.0,
-//     1.0, -1.0,  1.0,
-    
-//     // left face
-//     -1.0, -1.0, -1.0,
-//     -1.0, -1.0,  1.0,
-//     -1.0,  1.0,  1.0,
-//     -1.0,  1.0, -1.0,
-//   ];
-//   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-
-//   // Create a vertex array object (attribute state)
-//   var vao = gl.createVertexArray();
-
-//   // and make it the one we're currently working with
-//   gl.bindVertexArray(vao);
-
-//   // Turn on the attribute
-//   gl.enableVertexAttribArray(positionAttributeLocation);
-
-//   // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-//   var size = 3;          // 2 components per iteration
-//   var type = gl.FLOAT;   // the data is 32bit floats
-//   var normalize = false; // don't normalize the data
-//   var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-//   var offset = 0;        // start at the beginning of the buffer
-//   gl.vertexAttribPointer(
-//       positionAttributeLocation, size, type, normalize, stride, offset);
-
-//   resize(gl.canvas);
-
-//   // Tell WebGL how to convert from clip space to pixels
-//   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-
-//   // Clear the canvas
-//   gl.clearColor(0, 0, 0, 0);
-//   gl.clear(gl.COLOR_BUFFER_BIT);
-
-//   // Tell it to use our program (pair of shaders)
-//   gl.useProgram(program);
-
-//   // Bind the attribute/buffer set we want.
-//   gl.bindVertexArray(vao);
-
-//   // draw
-//   var primitiveType = gl.TRIANGLES;
-//   var offset = 0;
-//   var count = 36;
-//   gl.drawArrays(primitiveType, offset, count);	
-// }
-
-
-
-
-
