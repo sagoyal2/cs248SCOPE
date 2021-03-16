@@ -78,7 +78,6 @@
 	precision highp float;
 
 	in vec4 v_color;
-
 	out vec4 outColor;
 
 	void main(){
@@ -104,18 +103,7 @@
 	void main(){
 		gl_Position = obj2world2NDC * a_position; //screen space position 
 		v_position = vec3(obj2world * a_position);
-
 		v_color = a_color;
-
-		//vec3 pos_to_camera = position - cameraPos;
-		//float dist = sqrt(dot(pos_to_camera, pos_to_camera));
-
-		//v_color = a_color;
-		//v_color.w = 0.7;
-
-		//if(dist > 7.0){
-		//	v_color.w = 2.0;
-		//}
 	}
 
 </script>
@@ -132,20 +120,12 @@
 	out vec4 outColor;
 
 	void main(){
-		//vec3 pos_to_camera = v_camera_pos - vec3(v_position);
-		//float light_filter = dot(pos_to_camera, pos_to_camera);
-		//outColor = vec4(0.53, 0.36, 0.71, light_filter);
-		//outColor.rgb *= 0.01*light_filter;
-
 		vec3 pos_to_camera = v_position - cameraPos;
 		float dist = sqrt(dot(pos_to_camera, pos_to_camera));
 
 		outColor = v_color;
-		outColor.w = 0.7;
+		outColor.w *= clamp(pow(0.899, dist), 0.2, 0.8);		
 
-		if(dist > 7.5){
-			outColor.w *= pow(0.9, dist-7.5);
-		}
 	}
 
 </script>
@@ -195,8 +175,11 @@
 
 <!-- Code for rendering to screen -->
 <script src = "../resources/math/matrix4by4.js"> </script>
-<script src = "../resources/assets/cube.js"> </script>
 <script src = "../resources/setup/createAndCompile.js"> </script>
+
+
+<script src = "../resources/assets/ground.js"> </script>
+<script src = "../resources/assets/cube.js"> </script>
 <script src = "../resources/assets/building.js"> </script>
 <script src = "../resources/assets/window.js"> </script>
 <script src = "city.js"></script>
