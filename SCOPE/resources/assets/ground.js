@@ -23,12 +23,12 @@ function set_ground_color(gl) {
 
 	var colors = [
 		//BOTTOM
-		133, 174, 212,
-		133, 174, 212,
-		133, 174, 212,
-		133, 174, 212,
-		133, 174, 212,
-		133, 174, 212,
+		0, 43, 112,
+		0, 43, 112,
+		0, 43, 112,
+		0, 43, 112,
+		0, 43, 112,
+		0, 43, 112,
     ];
 
     var color_2 = colors.map(function(item) { return item/256 });
