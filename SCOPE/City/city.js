@@ -31,7 +31,9 @@ function render_City(){
   var zFar = 2000;
 
   //camera args
-  var cameraPosition = [0, 5, 10];
+  //var cameraPosition = [4, .1, -5];
+  //var cameraPosition = [-4, .1, -5];
+  cameraPosition = [-5, .1, 5];
   //var cameraPosition = [0, 5, 5];
   //var cameraPosition = [0, 3, 5]
   var target = [0, 0, 0];
@@ -45,9 +47,9 @@ function render_City(){
 
   function drawScene(now) {
 
-    now *= 0.00001;
-    //cameraPosition[1] -= now;
-    cameraPosition[2] -= now;
+    // now *= 0.00001;
+    // //cameraPosition[1] -= now;
+    // cameraPosition[2] -= now;
 
 
     // Canvas Setup
@@ -138,10 +140,10 @@ function render_City(){
     gl.uniform3fv(camera_loc_camera, cameraPosition);
 
     /*Fill Cube Parameters*/
-    fill_fn(gl, position_loc_camera, set_cube_position);
-    fill_fn(gl, color_loc_camera, set_cube_color);
+    fill_fn(gl, position_loc_camera, set_car_position);
+    fill_fn(gl, color_loc_camera, set_car_normal);
     //setWorldViewPerspectiveMatrix
-    gl.drawArrays(gl.TRIANGLES, 0, 6*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
+    gl.drawArrays(gl.TRIANGLES, 0, 32*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
 
 
     //draw cube again with rotated camera
@@ -184,10 +186,26 @@ function fill_fn(gl, attribute_location, _fn) {
 
 
 
-
-function render_litter_lamppost(){
+function render_Full_City(){
   // Get A WebGL context
   var canvas = document.querySelector("#c");
+
+  //document.addEventListener('mousemove', logKey);
+
+
+  let prior_x = window.innerWidth / 2;
+  let prior_y = window.innerHeight / 2;
+
+  document.addEventListener('mousemove', logKey);
+  // let center_x = window.innerWidth / 2;
+  // let center_y = window.innerHeight / 2;
+
+  // function logKey(e) {
+  //   var x = window.innerWidth / 2;
+  //   var y = window.innerHeight / 2;
+  //   console.log('Screen X/Y: ' + e.screenX + " " + e.screenY + ' Client X/Y: '+ e.clientX + " "+ e.clientY + ' Center x/y: ' + x + " " + y);
+  // }
+
   var gl = canvas.getContext("webgl2");
   if (!gl) {
     console.log("ok... well apparently you don't have webgl2");
@@ -230,11 +248,25 @@ function render_litter_lamppost(){
   var then = 0;
   requestAnimationFrame(drawScene);
 
+
+  function logKey(e) {
+    //console.log('Screen X/Y: ' + e.screenX + " " + e.screenY + ' Client X/Y: '+ e.clientX + " "+ e.clientY + ' Center x/y: ' + x + " " + y);
+
+    //console.log("prior_x: " + prior_x + " e.clientX: " + e.clientX + " prior_y: " + prior_y + " e.clientY" + e.clientY);
+    let diffX = e.clientX - prior_x;
+    let diffY = e.clientY - prior_y;
+    target[0] -= diffX/100.0;
+    target[1] += (diffX/200.0 - diffY/200.0);
+    target[2] -= diffY/100.0;
+    prior_x = e.clientX;
+    prior_y = e.clientY;
+  }
+
   function drawScene(now) {
 
     //var cameraPosition = [2, 15, 13]; -2
     //var cameraPosition = [-12, 15, -15]; +2
-    now *= 0.00001;
+    now *= 0.000001;
     cameraPosition[0] += 2*now;
     cameraPosition[1] -= 0.5*now;
     cameraPosition[2] += 2*now;
@@ -383,8 +415,7 @@ var lamps = [ [0,18], [2, 18], [4, 18], [6, 18], [8, 18], [10, 18], [16, 18], [1
               [8, 2], [10, 2], [12, 2], [14, 2], [16, 2], [19, 2],
               [2, 1], [5, 1], [16, 0], [19, 0],
             ];
-
-render_litter_lamppost();
+render_Full_City();
 
 
 
