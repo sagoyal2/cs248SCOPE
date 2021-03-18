@@ -206,9 +206,8 @@ function render_Full_City(){
   }
 
   // Enable Mouse Capture
-  // let prior_x = window.innerWidth / 2;
-  // let prior_y = window.innerHeight / 2;
-  // document.addEventListener('mousemove', logKey);
+  let prior_x = window.innerWidth / 4;
+  let prior_y = window.innerHeight / 4;
 
   // Link shaders into a program
   var cube_camera_program = createProgramfromScripts(gl, ["cube-camera-vertex-shader", "cube-camera-fragment-shader"]);
@@ -242,9 +241,20 @@ function render_Full_City(){
   // var cameraPosition = [-12, 15, -15];
   //var cameraPosition = [-5, 5, 5];
   //var cameraPosition = [.1, 0, 4];
+  
+  var up = [0, 1, 0];
+
   var main_camera = [5, 9, 2];
+  var main_target = [-5, -1, -6];
+  var main_destination = [-5, -1, -6];
+  var main_motion_direction = m4.normalize([main_destination[0] - main_camera[0], main_destination[1] - main_camera[1], main_destination[2] - main_camera[2]]);
+  var shift_right = m4.cross(main_motion_direction, up);
+  var shift_up = m4.cross(shift_right, main_motion_direction);
+
+  console.log("shift_right: " + shift_right);
+  console.log("shift_up: " + shift_up);
+
   var spot_camera = [0, 15, 15];
-  var main_target = [0, 0, 0];
   var spot_target = main_camera;
   //var cameraPosition = [10, 25, 0.1];
 
@@ -257,29 +267,97 @@ function render_Full_City(){
 
   //var cameraPosition = [15, 5, 15];
   //var target = [5, 0, 5];
-  var up = [0, 1, 0];
 
+  document.addEventListener('mousemove', logKey);
   requestAnimationFrame(drawScene);
 
 
   function logKey(e) {
-    let diffX = e.clientX - prior_x;
-    let diffY = e.clientY - prior_y;
-    target[0] -= diffX/100.0;
-    target[1] += (diffX/200.0 - diffY/200.0);
-    target[2] -= diffY/100.0;
-    prior_x = e.clientX;
-    prior_y = e.clientY;
+    //console.log("e.clientX: " + e.clientX + " e.clientY: " + e.clientY);
+
+    //x [300, 420]
+    //y [230, 380]
+
+    let scale = 0.0002;
+    let diffX = 0;
+    let diffY = 0;
+
+    //move right
+    if(e.clientX > 420){
+
+        diffX = e.clientX - 420; //positive
+        
+        if(e.clientY <230){
+          diffY = 230 - e.clientY; //positive
+        }else if(e.clientY > 380){
+          diffY = 380 - e.clientY; //negative
+        }
+
+        main_target[0] += scale*(diffX*shift_right[0] + diffY*shift_up[0]);
+        main_target[1] += scale*(diffX*shift_right[1] + diffY*shift_up[1]);
+        main_target[2] += scale*(diffX*shift_right[2] + diffY*shift_up[2]);
+
+        return;
+    }
+
+    //move left
+    if(e.clientX < 300){
+      diffX = e.clientX - 300;  //negative
+
+      if(e.clientY <230){
+        diffY = 230 - e.clientY; //positive
+      }else if(e.clientY > 380){
+        diffY = 380 - e.clientY; //negative
+      }
+
+      main_target[0] += scale*(diffX*shift_right[0] + diffY*shift_up[0]);
+      main_target[1] += scale*(diffX*shift_right[1] + diffY*shift_up[1]);
+      main_target[2] += scale*(diffX*shift_right[2] + diffY*shift_up[2]);
+
+    }
+
+
+    //move up only
+    if(e.clientY < 230){
+      diffY = 230 - e.clientY; //positive
+
+      main_target[0] += scale*(diffX*shift_right[0] + diffY*shift_up[0]);
+      main_target[1] += scale*(diffX*shift_right[1] + diffY*shift_up[1]);
+      main_target[2] += scale*(diffX*shift_right[2] + diffY*shift_up[2]);
+
+    }
+
+    //move down only
+    if(e.clientY > 380){
+      diffY = 380 - e.clientY; //negative
+
+      main_target[0] += scale*(diffX*shift_right[0] + diffY*shift_up[0]);
+      main_target[1] += scale*(diffX*shift_right[1] + diffY*shift_up[1]);
+      main_target[2] += scale*(diffX*shift_right[2] + diffY*shift_up[2]);
+
+    }
+
   }
 
   function drawScene(now) {
 
     //var cameraPosition = [2, 15, 13]; -2
     //var cameraPosition = [-12, 15, -15]; +2
-    now *= 0.000001;
-    main_camera[0] -= 2*now;
-    main_camera[1] -= 2*now;
-    main_camera[2] -= 2*now;
+    
+    // now *= 0.0000001;
+
+    // if(main_camera[1] > 0){
+    //   main_camera[0] += 2*now*main_motion_direction[0];
+    //   main_camera[1] += 2*now*main_motion_direction[1];
+    //   main_camera[2] += 2*now*main_motion_direction[2];
+
+
+    //   //Move the spot camera closer to the main camera each round a little bit
+    //   var spot_to_main = m4.normalize([main_camera[0] - spot_camera[0], main_camera[1] - spot_camera[1], main_camera[2] - spot_camera[2]]);
+    //   spot_camera[0] += now*spot_to_main[0]
+    //   spot_camera[1] += now*spot_to_main[1]
+    //   spot_camera[2] += now*spot_to_main[2]
+    // } 
 
     // Canvas Setup
     resize(gl.canvas);
@@ -302,9 +380,8 @@ function render_Full_City(){
     gl.scissor(leftWidth +offset, 0, rightWidth, height);
     drawWithCamera(spot_camera, spot_target);
 
-    // {
-    //   //second viewport all draws main_camera aswell
-
+    //For spot view draw in the main camera
+    {
         gl.useProgram(cube_static_program);
 
         //Create and Set obj2world2NDC
@@ -313,10 +390,8 @@ function render_Full_City(){
         var obj2World = m4.multiply(camera2world, projectObject);
 
         var main_camera_camera2world = m4.lookAt(main_camera, main_target, up);
-
         var moveObjectInWorld =  m4.multiply(m4.inverse(main_camera_camera2world), m4.scaling(0.5, 0.5, 0.5));
-        //var moveObjectInWorld = m4.identity();
-        //var moveObjectInWorld = m4.scaling(.3, .3, .3);
+
         obj2World = m4.multiply(moveObjectInWorld, obj2World);
         gl.uniformMatrix4fv(obj2world2NDC_loc_static, false, obj2World);
 
@@ -324,11 +399,9 @@ function render_Full_City(){
         /*Fill Cube Parameters*/
         fill_fn(gl, position_loc_static, set_camera_position);
         fill_fn(gl, color_loc_static, set_camera_color);
-        //setWorldViewPerspectiveMatrix
         gl.drawArrays(gl.TRIANGLES, 0, 18*3);//Cube = 37 faces, 2 triangles per face, 3 verticies per triangle
 
-
-    // }
+    }
 
     function drawWithCamera(given_camera, given_target){
       //Program for Ground
@@ -358,19 +431,19 @@ function render_Full_City(){
       add_building(-3.3, 1.2, -6.5,  .9, 2.7, 1.5);
 
       //Add Normal Cars
-      add_car(0.2, -.5, 0, .7, .7, .7, degToRad(180));
-      add_car(-5.4, -.5, -4, .7, .7, .7, degToRad(135));
-      add_car(6, -.5, -5.5, .7, .7, .7, degToRad(145));
-      add_car(8.5, -.5, -7.2, .7, .7, .7, degToRad(90));
+      add_car(0.2, -.7, 0, .7, .7, .7, degToRad(180));
+      add_car(-5.4, -.7, -4, .7, .7, .7, degToRad(135));
+      add_car(6, -.7, -5.5, .7, .7, .7, degToRad(145));
+      add_car(8.5, -.7, -7.2, .7, .7, .7, degToRad(90));
 
 
       //Add Taxi Cars
-      add_taxi(-2, -.5, 7.3 , .7, .7, .7, degToRad(90));
-      add_taxi(-5.5, -.5, 7.3 , .7, .7, .7, degToRad(90));
-      add_taxi(-9, -.5, 7.3 , .7, .7, .7, degToRad(90));
-      add_taxi(8.1, -.5, 0.2, .7, .7, .7, degToRad(0));
-      add_taxi(8.1, -.5, 3.2, .7, .7, .7, degToRad(0));
-      add_taxi(8.1, -.5, 7.2, .7, .7, .7, degToRad(0));
+      add_taxi(-2, -.7, 7.3 , .7, .7, .7, degToRad(90));
+      add_taxi(-5.5, -.7, 7.3 , .7, .7, .7, degToRad(90));
+      add_taxi(-9, -.7, 7.3 , .7, .7, .7, degToRad(90));
+      add_taxi(8.1, -.7, 0.2, .7, .7, .7, degToRad(0));
+      add_taxi(8.1, -.7, 3.2, .7, .7, .7, degToRad(0));
+      add_taxi(8.1, -.7, 7.2, .7, .7, .7, degToRad(0));
 
       function add_car(tx, ty, tz, sx, sy, sz, ry){
         //Create and Set obj2world2NDC
