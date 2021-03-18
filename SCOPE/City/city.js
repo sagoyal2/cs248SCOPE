@@ -192,7 +192,7 @@ function fill_fn(gl, attribute_location, _fn) {
 
 }
 
-render_City();
+//render_City();
 
 
 
@@ -248,9 +248,21 @@ function render_Full_City(){
   //camera args
   // var cameraPosition = [-12, 15, -15];
   //var cameraPosition = [-5, 5, 5];
-  var cameraPosition = [0, 20, 0.1];
-  //var cameraPosition = [0, 35, 0.1];
-  var target = [0, 0, 0];
+  //var cameraPosition = [.1, 0, 4];
+  // var cameraPosition = [0, 15, 0.1];
+  // var target = [0, 0, 0];
+  //var cameraPosition = [10, 25, 0.1];
+
+  // var cameraPosition = [5, 0.4, 4];
+  // var cameraPosition = [10, 20, 0.1];
+  // var target = [10, 0, 0];
+
+  // var cameraPosition = [-10, 5, 10];
+  // var target = [-7, 0, 10];
+
+  var cameraPosition = [10, 5, 10];
+  var target = [5, 0, 5];
+
   var up = [0, 1, 0];
 
   var groundPlaneDim = 12.0;
@@ -279,8 +291,8 @@ function render_Full_City(){
     //var cameraPosition = [-12, 15, -15]; +2
     // now *= 0.000001;
     // cameraPosition[0] += 2*now;
-    // cameraPosition[1] -= 0.5*now;
-    // cameraPosition[2] += 2*now;
+    // cameraPosition[1] += 0.5*now;
+    // cameraPosition[2] -= 2*now;
 
     // Canvas Setup
     resize(gl.canvas);
@@ -302,11 +314,11 @@ function render_Full_City(){
     litter_lampposts(numLampPost);
 
     //Add Big Buildings
-    add_building(-6.0, 4, 1.6, 3.2, 6, 2.3); 
-    add_building(.5, 2, -10, 4.7, 4, 1);
-    add_building(3.5, 4, -3.0, 1.8, 5.7, 1.3);
-    add_building(3.5, 4, -3.0, 1.8, 5.7, 1.3);
-    add_building(4.6, 2, 3.2, 0.9, 4, 4.5);
+    add_building(-6.0, 4, 1.6, 3.2, 5, 2.3); 
+    add_building(.5, 2, -10, 4.7, 3, 1);
+    add_building(3.5, 4, -3.0, 1.8, 4.7, 1.3);
+    add_building(3.5, 4, -3.0, 1.8, 4.7, 1.3);
+    add_building(4.6, 2, 3.2, 0.9, 3, 4.5);
 
     //Add Small Buildings
     add_building(2.4, 1, 0.5, .8, 2.1, 1.2);
@@ -317,14 +329,26 @@ function render_Full_City(){
     add_building(-3.3, 1.2, -6.5,  .9, 2.7, 1.5);
 
     //Add Normal Cars
-    add_car(1, 1, 1, 0, 0, 0);
+    add_car(0.2, -.5, 0, .7, .7, .7, degToRad(180));
+    add_car(-5.4, -.5, -4, .7, .7, .7, degToRad(135));
+    add_car(6, -.5, -5.5, .7, .7, .7, degToRad(145));
+    add_car(8.5, -.5, -7.2, .7, .7, .7, degToRad(90));
 
-    function add_car(tx, ty, tz, sx, sy, sz){
+
+    //Add Taxi Cars
+    add_taxi(-2, -.5, 7.3 , .7, .7, .7, degToRad(90));
+    add_taxi(-5.5, -.5, 7.3 , .7, .7, .7, degToRad(90));
+    add_taxi(-9, -.5, 7.3 , .7, .7, .7, degToRad(90));
+    add_taxi(8.1, -.5, 0.2, .7, .7, .7, degToRad(0));
+    add_taxi(8.1, -.5, 3.2, .7, .7, .7, degToRad(0));
+    add_taxi(8.1, -.5, 7.2, .7, .7, .7, degToRad(0));
+
+    function add_car(tx, ty, tz, sx, sy, sz, ry){
       //Create and Set obj2world2NDC
       var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
       var camera2world = m4.lookAt(cameraPosition, target, up);
       var obj2World = m4.multiply(camera2world, projectObject);
-      var moveObjectInWorld = m4.multiply(m4.scaling(sx, sy, sz), m4.translation(tx, ty, tz));
+      var moveObjectInWorld = m4.multiply(m4.scaling(sx, sy, sz), m4.multiply(m4.yRotation(ry), m4.translation(tx, ty, tz)));
       obj2World = m4.multiply(moveObjectInWorld, obj2World);
       gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2World);
 
@@ -339,6 +363,28 @@ function render_Full_City(){
       fill_fn(gl, color_loc_camera, set_car_color);
       //setWorldViewPerspectiveMatrix
       gl.drawArrays(gl.TRIANGLES, 0, 32*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
+    }
+
+    function add_taxi(tx, ty, tz, sx, sy, sz, ry){
+      //Create and Set obj2world2NDC
+      var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
+      var camera2world = m4.lookAt(cameraPosition, target, up);
+      var obj2World = m4.multiply(camera2world, projectObject);
+      var moveObjectInWorld = m4.multiply(m4.scaling(sx, sy, sz), m4.multiply(m4.yRotation(ry), m4.translation(tx, ty, tz)));
+      obj2World = m4.multiply(moveObjectInWorld, obj2World);
+      gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2World);
+
+      //Set obj2world
+      gl.uniformMatrix4fv(obj2world_loc_camera, false, moveObjectInWorld);
+
+      //Set cameraPos
+      gl.uniform3fv(camera_loc_camera, cameraPosition);
+
+      /*Fill Cube Parameters*/
+      fill_fn(gl, position_loc_camera, set_police_position);
+      fill_fn(gl, color_loc_camera, set_police_color);
+      //setWorldViewPerspectiveMatrix
+      gl.drawArrays(gl.TRIANGLES, 0, 37*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
     }
 
 
@@ -453,7 +499,7 @@ var lamps = [ [0,18], [2, 18], [4, 18], [6, 18], [8, 18], [10, 18], [16, 18], [1
               [8, 2], [10, 2], [12, 2], [14, 2], [16, 2], [19, 2],
               [2, 1], [5, 1], [16, 0], [19, 0],
             ];
-//render_Full_City();
+render_Full_City();
 
 
 
