@@ -150,10 +150,10 @@ function render_City(){
     gl.uniform3fv(camera_loc_camera, cameraPosition);
 
     /*Fill Cube Parameters*/
-    fill_fn(gl, position_loc_camera, set_car_position);
-    fill_fn(gl, color_loc_camera, set_car_color);
+    fill_fn(gl, position_loc_camera, set_camera_position);
+    fill_fn(gl, color_loc_camera, set_camera_color);
     //setWorldViewPerspectiveMatrix
-    gl.drawArrays(gl.TRIANGLES, 0, 32*2*3);//Cube = 37 faces, 2 triangles per face, 3 verticies per triangle
+    gl.drawArrays(gl.TRIANGLES, 0, 18*3);//Cube = 37 faces, 2 triangles per face, 3 verticies per triangle
 
 
     //draw cube again with rotated camera
@@ -192,35 +192,23 @@ function fill_fn(gl, attribute_location, _fn) {
 
 }
 
-//render_City();
+render_City();
 
 
 
 function render_Full_City(){
   // Get A WebGL context
   var canvas = document.querySelector("#c");
-
-  //document.addEventListener('mousemove', logKey);
-
-
-  let prior_x = window.innerWidth / 2;
-  let prior_y = window.innerHeight / 2;
-
-  //document.addEventListener('mousemove', logKey);
-  // let center_x = window.innerWidth / 2;
-  // let center_y = window.innerHeight / 2;
-
-  // function logKey(e) {
-  //   var x = window.innerWidth / 2;
-  //   var y = window.innerHeight / 2;
-  //   console.log('Screen X/Y: ' + e.screenX + " " + e.screenY + ' Client X/Y: '+ e.clientX + " "+ e.clientY + ' Center x/y: ' + x + " " + y);
-  // }
-
   var gl = canvas.getContext("webgl2");
   if (!gl) {
     console.log("ok... well apparently you don't have webgl2");
     return;
   }
+
+  // Enable Mouse Capture
+  // let prior_x = window.innerWidth / 2;
+  // let prior_y = window.innerHeight / 2;
+  // document.addEventListener('mousemove', logKey);
 
   // Link shaders into a program
   var cube_camera_program = createProgramfromScripts(gl, ["cube-camera-vertex-shader", "cube-camera-fragment-shader"]);
@@ -240,17 +228,24 @@ function render_Full_City(){
 
 
   // Set ___________
+  const effectiveWidth = gl.canvas.clientWidth / 2;
   var fieldOfView = 60;
-  var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+  var aspect = effectiveWidth / gl.canvas.clientHeight;
   var zNear = 1;
   var zFar = 2000;
+
+  // const {width, height} = gl.canvas;
+  // const leftWidth = width / 2 | 0;
+  // const rightWidth = width - leftWidth;
 
   //camera args
   // var cameraPosition = [-12, 15, -15];
   //var cameraPosition = [-5, 5, 5];
   //var cameraPosition = [.1, 0, 4];
-  // var cameraPosition = [0, 15, 0.1];
-  // var target = [0, 0, 0];
+  var main_camera = [5, 9, 2];
+  var spot_camera = [0, 15, 15];
+  var main_target = [0, 0, 0];
+  var spot_target = main_camera;
   //var cameraPosition = [10, 25, 0.1];
 
   // var cameraPosition = [5, 0.4, 4];
@@ -260,22 +255,14 @@ function render_Full_City(){
   // var cameraPosition = [-10, 5, 10];
   // var target = [-7, 0, 10];
 
-  var cameraPosition = [10, 5, 10];
-  var target = [5, 0, 5];
-
+  //var cameraPosition = [15, 5, 15];
+  //var target = [5, 0, 5];
   var up = [0, 1, 0];
 
-  var groundPlaneDim = 12.0;
-
-
-  var then = 0;
   requestAnimationFrame(drawScene);
 
 
   function logKey(e) {
-    //console.log('Screen X/Y: ' + e.screenX + " " + e.screenY + ' Client X/Y: '+ e.clientX + " "+ e.clientY + ' Center x/y: ' + x + " " + y);
-
-    //console.log("prior_x: " + prior_x + " e.clientX: " + e.clientX + " prior_y: " + prior_y + " e.clientY" + e.clientY);
     let diffX = e.clientX - prior_x;
     let diffY = e.clientY - prior_y;
     target[0] -= diffX/100.0;
@@ -289,183 +276,220 @@ function render_Full_City(){
 
     //var cameraPosition = [2, 15, 13]; -2
     //var cameraPosition = [-12, 15, -15]; +2
-    // now *= 0.000001;
-    // cameraPosition[0] += 2*now;
-    // cameraPosition[1] += 0.5*now;
-    // cameraPosition[2] -= 2*now;
+    now *= 0.000001;
+    main_camera[0] -= 2*now;
+    main_camera[1] -= 2*now;
+    main_camera[2] -= 2*now;
 
     // Canvas Setup
     resize(gl.canvas);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); //clear everything
     gl.enable(gl.CULL_FACE); //only draw front facing triangles
     gl.enable(gl.DEPTH_TEST); //add depth buffer
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.enable(gl.SCISSOR_TEST); //allow split screen
+
+    const {width, height} = gl.canvas;
+    const leftWidth = width / 2 | 0;
+    const rightWidth = width - leftWidth;
+    const offset = 20;
+    //gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+    gl.viewport(0, 0, leftWidth - offset, height);
+    gl.scissor(0, 0, leftWidth - offset, height);
+    drawWithCamera(main_camera, main_target);
+
+    gl.viewport(leftWidth + offset, 0, rightWidth, height);
+    gl.scissor(leftWidth +offset, 0, rightWidth, height);
+    drawWithCamera(spot_camera, spot_target);
+
+    // {
+    //   //second viewport all draws main_camera aswell
+
+        gl.useProgram(cube_static_program);
+
+        //Create and Set obj2world2NDC
+        var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
+        var camera2world = m4.lookAt(spot_camera, spot_target, up);
+        var obj2World = m4.multiply(camera2world, projectObject);
+
+        var main_camera_camera2world = m4.lookAt(main_camera, main_target, up);
+
+        var moveObjectInWorld =  m4.multiply(m4.inverse(main_camera_camera2world), m4.scaling(0.5, 0.5, 0.5));
+        //var moveObjectInWorld = m4.identity();
+        //var moveObjectInWorld = m4.scaling(.3, .3, .3);
+        obj2World = m4.multiply(moveObjectInWorld, obj2World);
+        gl.uniformMatrix4fv(obj2world2NDC_loc_static, false, obj2World);
 
 
-    //Program for Ground
-    gl.useProgram(cube_static_program);
-    add_ground_plane();
-
-    //Program for Buildings / Lampposts / Cars
-    gl.useProgram(cube_camera_program);
-
-    //Add Lamppost
-    var numLampPost = 20;
-    litter_lampposts(numLampPost);
-
-    //Add Big Buildings
-    add_building(-6.0, 4, 1.6, 3.2, 5, 2.3); 
-    add_building(.5, 2, -10, 4.7, 3, 1);
-    add_building(3.5, 4, -3.0, 1.8, 4.7, 1.3);
-    add_building(3.5, 4, -3.0, 1.8, 4.7, 1.3);
-    add_building(4.6, 2, 3.2, 0.9, 3, 4.5);
-
-    //Add Small Buildings
-    add_building(2.4, 1, 0.5, .8, 2.1, 1.2);
-    add_building(2.4, 1, 3.5, .8, 2.4, 1.2);
-    add_building(2.4, 1, 6.5, .8, 2.2, 1.2);
-    add_building(-10, 1, -8.5, 1.2, 2.3, 2);
-    add_building(-10, 1, -3.4, 1.2, 2.2,1.5);
-    add_building(-3.3, 1.2, -6.5,  .9, 2.7, 1.5);
-
-    //Add Normal Cars
-    add_car(0.2, -.5, 0, .7, .7, .7, degToRad(180));
-    add_car(-5.4, -.5, -4, .7, .7, .7, degToRad(135));
-    add_car(6, -.5, -5.5, .7, .7, .7, degToRad(145));
-    add_car(8.5, -.5, -7.2, .7, .7, .7, degToRad(90));
+        /*Fill Cube Parameters*/
+        fill_fn(gl, position_loc_static, set_camera_position);
+        fill_fn(gl, color_loc_static, set_camera_color);
+        //setWorldViewPerspectiveMatrix
+        gl.drawArrays(gl.TRIANGLES, 0, 18*3);//Cube = 37 faces, 2 triangles per face, 3 verticies per triangle
 
 
-    //Add Taxi Cars
-    add_taxi(-2, -.5, 7.3 , .7, .7, .7, degToRad(90));
-    add_taxi(-5.5, -.5, 7.3 , .7, .7, .7, degToRad(90));
-    add_taxi(-9, -.5, 7.3 , .7, .7, .7, degToRad(90));
-    add_taxi(8.1, -.5, 0.2, .7, .7, .7, degToRad(0));
-    add_taxi(8.1, -.5, 3.2, .7, .7, .7, degToRad(0));
-    add_taxi(8.1, -.5, 7.2, .7, .7, .7, degToRad(0));
+    // }
 
-    function add_car(tx, ty, tz, sx, sy, sz, ry){
-      //Create and Set obj2world2NDC
-      var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
-      var camera2world = m4.lookAt(cameraPosition, target, up);
-      var obj2World = m4.multiply(camera2world, projectObject);
-      var moveObjectInWorld = m4.multiply(m4.scaling(sx, sy, sz), m4.multiply(m4.yRotation(ry), m4.translation(tx, ty, tz)));
-      obj2World = m4.multiply(moveObjectInWorld, obj2World);
-      gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2World);
+    function drawWithCamera(given_camera, given_target){
+      //Program for Ground
+      gl.useProgram(cube_static_program);
+      add_ground_plane();
 
-      //Set obj2world
-      gl.uniformMatrix4fv(obj2world_loc_camera, false, moveObjectInWorld);
+      //Program for Buildings / Lampposts / Cars
+      gl.useProgram(cube_camera_program);
 
-      //Set cameraPos
-      gl.uniform3fv(camera_loc_camera, cameraPosition);
+      //Add Lamppost
+      var numLampPost = 20;
+      litter_lampposts(numLampPost);
 
-      /*Fill Cube Parameters*/
-      fill_fn(gl, position_loc_camera, set_car_position);
-      fill_fn(gl, color_loc_camera, set_car_color);
-      //setWorldViewPerspectiveMatrix
-      gl.drawArrays(gl.TRIANGLES, 0, 32*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
-    }
+      //Add Big Buildings
+      add_building(-6.0, 4, 1.6, 3.2, 5, 2.3); 
+      add_building(.5, 2, -10, 4.7, 3, 1);
+      add_building(3.5, 4, -3.0, 1.8, 4.7, 1.3);
+      add_building(3.5, 4, -3.0, 1.8, 4.7, 1.3);
+      add_building(4.6, 2, 3.2, 0.9, 3, 4.5);
 
-    function add_taxi(tx, ty, tz, sx, sy, sz, ry){
-      //Create and Set obj2world2NDC
-      var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
-      var camera2world = m4.lookAt(cameraPosition, target, up);
-      var obj2World = m4.multiply(camera2world, projectObject);
-      var moveObjectInWorld = m4.multiply(m4.scaling(sx, sy, sz), m4.multiply(m4.yRotation(ry), m4.translation(tx, ty, tz)));
-      obj2World = m4.multiply(moveObjectInWorld, obj2World);
-      gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2World);
+      //Add Small Buildings
+      add_building(2.4, 1, 0.5, .8, 2.1, 1.2);
+      add_building(2.4, 1, 3.5, .8, 2.4, 1.2);
+      add_building(2.4, 1, 6.5, .8, 2.2, 1.2);
+      add_building(-10, 1, -8.5, 1.2, 2.3, 2);
+      add_building(-10, 1, -3.4, 1.2, 2.2,1.5);
+      add_building(-3.3, 1.2, -6.5,  .9, 2.7, 1.5);
 
-      //Set obj2world
-      gl.uniformMatrix4fv(obj2world_loc_camera, false, moveObjectInWorld);
-
-      //Set cameraPos
-      gl.uniform3fv(camera_loc_camera, cameraPosition);
-
-      /*Fill Cube Parameters*/
-      fill_fn(gl, position_loc_camera, set_police_position);
-      fill_fn(gl, color_loc_camera, set_police_color);
-      //setWorldViewPerspectiveMatrix
-      gl.drawArrays(gl.TRIANGLES, 0, 37*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
-    }
+      //Add Normal Cars
+      add_car(0.2, -.5, 0, .7, .7, .7, degToRad(180));
+      add_car(-5.4, -.5, -4, .7, .7, .7, degToRad(135));
+      add_car(6, -.5, -5.5, .7, .7, .7, degToRad(145));
+      add_car(8.5, -.5, -7.2, .7, .7, .7, degToRad(90));
 
 
-    function add_building(tx, ty, tz, sx, sy, sz){
-      //Create and Set obj2world2NDC
-      var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
-      var camera2world = m4.lookAt(cameraPosition, target, up);
-      var obj2World = m4.multiply(camera2world, projectObject);
-      var moveObjectInWorld = m4.multiply(m4.scaling(sx, sy, sz), m4.translation(tx, ty, tz));
-      obj2World = m4.multiply(moveObjectInWorld, obj2World);
-      gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2World);
+      //Add Taxi Cars
+      add_taxi(-2, -.5, 7.3 , .7, .7, .7, degToRad(90));
+      add_taxi(-5.5, -.5, 7.3 , .7, .7, .7, degToRad(90));
+      add_taxi(-9, -.5, 7.3 , .7, .7, .7, degToRad(90));
+      add_taxi(8.1, -.5, 0.2, .7, .7, .7, degToRad(0));
+      add_taxi(8.1, -.5, 3.2, .7, .7, .7, degToRad(0));
+      add_taxi(8.1, -.5, 7.2, .7, .7, .7, degToRad(0));
 
-      //Set obj2world
-      gl.uniformMatrix4fv(obj2world_loc_camera, false, moveObjectInWorld);
+      function add_car(tx, ty, tz, sx, sy, sz, ry){
+        //Create and Set obj2world2NDC
+        var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
+        var camera2world = m4.lookAt(given_camera, given_target, up);
+        var obj2World = m4.multiply(camera2world, projectObject);
+        var moveObjectInWorld = m4.multiply(m4.scaling(sx, sy, sz), m4.multiply(m4.yRotation(ry), m4.translation(tx, ty, tz)));
+        obj2World = m4.multiply(moveObjectInWorld, obj2World);
+        gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2World);
 
-      //Set cameraPos
-      gl.uniform3fv(camera_loc_camera, cameraPosition);
+        //Set obj2world
+        gl.uniformMatrix4fv(obj2world_loc_camera, false, moveObjectInWorld);
 
-      /*Fill Cube Parameters*/
-      fill_fn(gl, position_loc_camera, set_cube_position);
-      fill_fn(gl, color_loc_camera, set_cube_color);
-      //setWorldViewPerspectiveMatrix
-      gl.drawArrays(gl.TRIANGLES, 0, 6*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
-    }
+        //Set cameraPos
+        gl.uniform3fv(camera_loc_camera, given_camera);
 
-    function add_ground_plane(){
-      //Create and Set obj2world2NDC
-      var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
-      var camera2world = m4.lookAt(cameraPosition, target, up);
-      var obj2World = m4.multiply(camera2world, projectObject);
-      //var moveObjectInWorld = m4.multiply(m4.yRotation(degToRad(20)), m4.translation(2.0, 0.0, 0.0));
-      var moveObjectInWorld = m4.multiply(m4.translation(-1/groundPlaneDim, -1/groundPlaneDim, -1/groundPlaneDim), m4.scaling(groundPlaneDim, groundPlaneDim, groundPlaneDim));
-      obj2World = m4.multiply(moveObjectInWorld, obj2World);
-      gl.uniformMatrix4fv(obj2world2NDC_loc_static, false, obj2World);
-
-
-      /*Fill Cube Parameters*/
-      fill_fn(gl, position_loc_static, set_ground_position);
-      fill_fn(gl, color_loc_static, set_ground_color);
-      //setWorldViewPerspectiveMatrix
-      gl.drawArrays(gl.TRIANGLES, 0, 1*2*3);//Ground = 1 faces, 2 triangles per face, 3 verticies per triangle
-    
-    }
-
-    function litter_lampposts(numLampPost){
-      /*********** Lamppost **************/
-      //Create and Set obj2world2NDC
-      var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
-      var camera2world = m4.lookAt(cameraPosition, target, up);
-      var obj2World = m4.multiply(camera2world, projectObject);
-      
-      for(let i  = 0; i < numLampPost; i++){
-        let x_pos = i - numLampPost/2;
-        //x_pos *= groundPlaneDim/2;
-
-        for(let j  = 0; j < numLampPost; j++){
-          let z_pos = j - numLampPost/2;
-          //z_pos *= groundPlaneDim/2;
-
-          //console.log("x_pos: " + x_pos + ", z_pos: " + z_pos);
-          if(searchForArray(lamps, [i,j])){
-
-            var moveObjectInWorld = m4.multiply(m4.scaling(0.4, 0.4, 0.4), m4.translation(x_pos, -0.4, z_pos));
-            var obj2world2NDC = m4.multiply(moveObjectInWorld, obj2World);
-            gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2world2NDC);
-
-            //Set obj2world
-            gl.uniformMatrix4fv(obj2world_loc_camera, false, moveObjectInWorld);
-
-            //Set cameraPos
-            gl.uniform3fv(camera_loc_camera, cameraPosition);
-
-            /*Fill Cube Parameters*/
-            fill_fn(gl, position_loc_camera, set_lamppost_position);
-            fill_fn(gl, color_loc_camera, set_lamppost_color);
-            //setWorldViewPerspectiveMatrix
-            gl.drawArrays(gl.TRIANGLES, 0, 6*2*3*2);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
-
-          }
-        }   
+        /*Fill Cube Parameters*/
+        fill_fn(gl, position_loc_camera, set_car_position);
+        fill_fn(gl, color_loc_camera, set_car_color);
+        gl.drawArrays(gl.TRIANGLES, 0, 32*2*3);
       }
+
+      function add_taxi(tx, ty, tz, sx, sy, sz, ry){
+        //Create and Set obj2world2NDC
+        var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
+        var camera2world = m4.lookAt(given_camera, given_target, up);
+        var obj2World = m4.multiply(camera2world, projectObject);
+        var moveObjectInWorld = m4.multiply(m4.scaling(sx, sy, sz), m4.multiply(m4.yRotation(ry), m4.translation(tx, ty, tz)));
+        obj2World = m4.multiply(moveObjectInWorld, obj2World);
+        gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2World);
+
+        //Set obj2world
+        gl.uniformMatrix4fv(obj2world_loc_camera, false, moveObjectInWorld);
+
+        //Set cameraPos
+        gl.uniform3fv(camera_loc_camera, given_camera);
+
+        /*Fill Cube Parameters*/
+        fill_fn(gl, position_loc_camera, set_police_position);
+        fill_fn(gl, color_loc_camera, set_police_color);
+        gl.drawArrays(gl.TRIANGLES, 0, 37*2*3);
+      }
+
+
+      function add_building(tx, ty, tz, sx, sy, sz){
+        //Create and Set obj2world2NDC
+        var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
+        var camera2world = m4.lookAt(given_camera, given_target, up);
+        var obj2World = m4.multiply(camera2world, projectObject);
+        var moveObjectInWorld = m4.multiply(m4.scaling(sx, sy, sz), m4.translation(tx, ty, tz));
+        obj2World = m4.multiply(moveObjectInWorld, obj2World);
+        gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2World);
+
+        //Set obj2world
+        gl.uniformMatrix4fv(obj2world_loc_camera, false, moveObjectInWorld);
+
+        //Set cameraPos
+        gl.uniform3fv(camera_loc_camera, given_camera);
+
+        /*Fill Cube Parameters*/
+        fill_fn(gl, position_loc_camera, set_cube_position);
+        fill_fn(gl, color_loc_camera, set_cube_color);
+        //setWorldViewPerspectiveMatrix
+        gl.drawArrays(gl.TRIANGLES, 0, 6*2*3);
+      }
+
+      function add_ground_plane(){
+        var groundPlaneDim = 12.0;
+
+        //Create and Set obj2world2NDC
+        var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
+        var camera2world = m4.lookAt(given_camera, given_target, up);
+        var obj2World = m4.multiply(camera2world, projectObject);
+        var moveObjectInWorld = m4.multiply(m4.translation(-1/groundPlaneDim, -1/groundPlaneDim, -1/groundPlaneDim), m4.scaling(groundPlaneDim, groundPlaneDim, groundPlaneDim));
+        obj2World = m4.multiply(moveObjectInWorld, obj2World);
+        gl.uniformMatrix4fv(obj2world2NDC_loc_static, false, obj2World);
+
+
+        /*Fill Cube Parameters*/
+        fill_fn(gl, position_loc_static, set_ground_position);
+        fill_fn(gl, color_loc_static, set_ground_color);
+        gl.drawArrays(gl.TRIANGLES, 0, 1*2*3); 
+      
+      }
+
+      function litter_lampposts(numLampPost){
+        /*********** Lamppost **************/
+        //Create and Set obj2world2NDC
+        var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
+        var camera2world = m4.lookAt(given_camera, given_target, up);
+        var obj2World = m4.multiply(camera2world, projectObject);
+        
+        for(let i  = 0; i < numLampPost; i++){
+          let x_pos = i - numLampPost/2;
+
+          for(let j  = 0; j < numLampPost; j++){
+            let z_pos = j - numLampPost/2;
+
+            if(searchForArray(lamps, [i,j])){
+
+              var moveObjectInWorld = m4.multiply(m4.scaling(0.4, 0.4, 0.4), m4.translation(x_pos, -0.4, z_pos));
+              var obj2world2NDC = m4.multiply(moveObjectInWorld, obj2World);
+              gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2world2NDC);
+
+              //Set obj2world
+              gl.uniformMatrix4fv(obj2world_loc_camera, false, moveObjectInWorld);
+
+              //Set cameraPos
+              gl.uniform3fv(camera_loc_camera, given_camera);
+
+              /*Fill Cube Parameters*/
+              fill_fn(gl, position_loc_camera, set_lamppost_position);
+              fill_fn(gl, color_loc_camera, set_lamppost_color);
+              gl.drawArrays(gl.TRIANGLES, 0, 6*2*3*2);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
+
+            }
+          }   
+        }
+      }      
     }
 
     //draw cube again with rotated camera
@@ -502,14 +526,3 @@ var lamps = [ [0,18], [2, 18], [4, 18], [6, 18], [8, 18], [10, 18], [16, 18], [1
 render_Full_City();
 
 
-
-
-
-
-
-// =======
-//               [0,15], [2, 15], [4, 15], [6, 15], [8, 15], [11, 17], [11, 15], [16, 16], [19, 16], [16, 14], [19, 14],[8, 13], [11, 13], [16,12], [19, 12], [8, 11], [11, 11], [16, 10], [19, 10],[2, 9], [4, 9], [6, 9], [8, 9], [11, 9], [16, 8], [19, 8],[2, 7], [11, 7], [6, 6], [8, 6], [16, 6], [19, 6],[2, 5], [5, 5], [11, 5], [13, 5], [15, 5], [8, 4], [2, 3], [5, 3],
-// [8, 2], [10, 2], [12, 2], [14, 2], [16, 2], [19, 2], [2, 1], [5, 1], [16, 0], [19, 0],];
-// >>>>>>> ac6073175058444677ed9ba7d28b8d2f1931d839
-
-//render_litter_lamppost();
