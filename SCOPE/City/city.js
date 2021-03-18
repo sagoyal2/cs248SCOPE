@@ -366,7 +366,7 @@ function render_Full_City(){
           //console.log("x_pos: " + x_pos + ", z_pos: " + z_pos);
           if(searchForArray(lamps, [i,j])){
 
-            var moveObjectInWorld = m4.multiply(m4.scaling(0.2, 0.2, 0.2), m4.translation(x_pos, -0.4, z_pos));
+            var moveObjectInWorld = m4.multiply(m4.scaling(0.4, 0.4, 0.4), m4.translation(x_pos, -0.4, z_pos));
             var obj2world2NDC = m4.multiply(moveObjectInWorld, obj2World);
             gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2world2NDC);
 
@@ -380,7 +380,7 @@ function render_Full_City(){
             fill_fn(gl, position_loc_camera, set_lamppost_position);
             fill_fn(gl, color_loc_camera, set_lamppost_color);
             //setWorldViewPerspectiveMatrix
-            gl.drawArrays(gl.TRIANGLES, 0, 13*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
+            gl.drawArrays(gl.TRIANGLES, 0, 6*2*3*2);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
 
           }
         }   
@@ -408,6 +408,7 @@ function searchForArray(haystack, needle){
 }
 
 var lamps = [ [0,18], [2, 18], [4, 18], [6, 18], [8, 18], [10, 18], [16, 18], [19, 18],
+
               [0,15], [2, 15], [4, 15], [6, 15], [8, 15], [11, 17], [11, 15], [16, 16], [19, 16], 
                                                                               [16, 14], [19, 14],
               [8, 13], [11, 13], [16,12], [19, 12], [8, 11], [11, 11], [16, 10], [19, 10],
@@ -425,4 +426,9 @@ var lamps = [ [0,18], [2, 18], [4, 18], [6, 18], [8, 18], [10, 18], [16, 18], [1
 
 
 
+// =======
+//               [0,15], [2, 15], [4, 15], [6, 15], [8, 15], [11, 17], [11, 15], [16, 16], [19, 16], [16, 14], [19, 14],[8, 13], [11, 13], [16,12], [19, 12], [8, 11], [11, 11], [16, 10], [19, 10],[2, 9], [4, 9], [6, 9], [8, 9], [11, 9], [16, 8], [19, 8],[2, 7], [11, 7], [6, 6], [8, 6], [16, 6], [19, 6],[2, 5], [5, 5], [11, 5], [13, 5], [15, 5], [8, 4], [2, 3], [5, 3],
+// [8, 2], [10, 2], [12, 2], [14, 2], [16, 2], [19, 2], [2, 1], [5, 1], [16, 0], [19, 0],];
+// >>>>>>> ac6073175058444677ed9ba7d28b8d2f1931d839
 
+render_litter_lamppost();
