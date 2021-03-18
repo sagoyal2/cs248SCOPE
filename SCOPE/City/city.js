@@ -36,8 +36,15 @@ function render_City(){
   //var cameraPosition = [-4, .1, 4];
   //var cameraPosition = [-1, -2, -2];
   //var cameraPosition = [0, 5, 5];
-  var cameraPosition = [-1, -1, -3] //bingo..
-  //var cameraPosition = [-1, .1, -3]
+  //var cameraPosition = [-1, -1, -3] //bingo..
+  //var cameraPosition = [2, -1, -3]
+  //var cameraPosition = [2, -1, 3]
+  //var cameraPosition = [-3, -1, -3]
+
+
+  //var cameraPosition = [0.1, -5, -.1]
+
+  var cameraPosition = [3, .3, 5]
   var target = [0, 0, 0];
   var up = [0, 1, 0];
 
@@ -132,6 +139,7 @@ function render_City(){
     var obj2World = m4.multiply(camera2world, projectObject);
     //var moveObjectInWorld = m4.multiply(m4.yRotation(-degToRad(20)), m4.translation(-2.0, 0.0, 0.0));
     var moveObjectInWorld = m4.identity();
+    //var moveObjectInWorld = m4.scaling(.3, .3, .3);
     obj2World = m4.multiply(moveObjectInWorld, obj2World);
     gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2World);
 
@@ -431,4 +439,4 @@ var lamps = [ [0,18], [2, 18], [4, 18], [6, 18], [8, 18], [10, 18], [16, 18], [1
 // [8, 2], [10, 2], [12, 2], [14, 2], [16, 2], [19, 2], [2, 1], [5, 1], [16, 0], [19, 0],];
 // >>>>>>> ac6073175058444677ed9ba7d28b8d2f1931d839
 
-render_litter_lamppost();
+//render_litter_lamppost();
