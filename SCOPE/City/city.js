@@ -244,18 +244,50 @@ function render_Full_City(){
   
   var up = [0, 1, 0];
 
-  var main_camera = [5, 9, 2];
-  var main_target = [-5, -1, -6];
-  var main_destination = [-5, -1, -6];
-  var main_motion_direction = m4.normalize([main_destination[0] - main_camera[0], main_destination[1] - main_camera[1], main_destination[2] - main_camera[2]]);
-  var shift_right = m4.cross(main_motion_direction, up);
-  var shift_up = m4.cross(shift_right, main_motion_direction);
+  // var main_camera = [5, 9, 2];
+  // var main_target = [-5, 2, -6];
+  // var main_destination = [-5, -1, -6];
+  var main_camera;
+  var main_target;
+  var main_destination;
+  var main_motion_direction;// = m4.normalize([main_destination[0] - main_camera[0], main_destination[1] - main_camera[1], main_destination[2] - main_camera[2]]);
+  var shift_right;// = m4.cross(main_motion_direction, up);
+  var shift_up;// = m4.cross(shift_right, main_motion_direction);
 
-  console.log("shift_right: " + shift_right);
-  console.log("shift_up: " + shift_up);
+  var main_camera_positions = [[5, 9, 2], [-5, 2, -6], [6, 8, 6]];
+  var len_camera_positions = 3; //MUST be greater than or equal to 3
+  var curr_camera_position = 0;
+  var next_camera_position = 1;
 
-  var spot_camera = [0, 15, 15];
+  var spot_camera = [0, 12, 10];
   var spot_target = main_camera;
+
+  function set_main_camera_attributes(new_curr_camera_position, new_next_camera_position){
+    main_camera = main_camera_positions[new_curr_camera_position];
+    main_target = JSON.parse(JSON.stringify(main_camera_positions[new_next_camera_position]));
+    main_destination = JSON.parse(JSON.stringify(main_camera_positions[new_next_camera_position]));
+
+    main_motion_direction = m4.normalize([main_destination[0] - main_camera[0], main_destination[1] - main_camera[1], main_destination[2] - main_camera[2]]);
+    shift_right = m4.cross(main_motion_direction, up);
+    shift_up = m4.cross(shift_right, main_motion_direction);
+  
+    spot_target = main_camera;
+    curr_camera_position = new_curr_camera_position;
+    next_camera_position = new_next_camera_position;
+  }
+
+
+  function distance_between_neighbors(){
+    // console.log('main_destination: ' + main_destination);
+    // console.log('main_camera: ' + main_camera);
+    var a = main_destination[0] - main_camera[0];
+    var b = main_destination[1] - main_camera[1];
+    var c = main_destination[2] - main_camera[2];
+    return Math.sqrt(a * a + b * b + c * c);
+  }
+
+  set_main_camera_attributes(curr_camera_position, next_camera_position);
+
   //var cameraPosition = [10, 25, 0.1];
 
   // var cameraPosition = [5, 0.4, 4];
@@ -339,25 +371,38 @@ function render_Full_City(){
 
   }
 
+  var continue_motion = true;
+
   function drawScene(now) {
 
     //var cameraPosition = [2, 15, 13]; -2
     //var cameraPosition = [-12, 15, -15]; +2
     
-    // now *= 0.0000001;
+    if(continue_motion){
 
-    // if(main_camera[1] > 0){
-    //   main_camera[0] += 2*now*main_motion_direction[0];
-    //   main_camera[1] += 2*now*main_motion_direction[1];
-    //   main_camera[2] += 2*now*main_motion_direction[2];
+      now *= 0.000001;
+      main_camera[0] += 2*now*main_motion_direction[0];
+      main_camera[1] += 2*now*main_motion_direction[1];
+      main_camera[2] += 2*now*main_motion_direction[2];
 
 
-    //   //Move the spot camera closer to the main camera each round a little bit
-    //   var spot_to_main = m4.normalize([main_camera[0] - spot_camera[0], main_camera[1] - spot_camera[1], main_camera[2] - spot_camera[2]]);
-    //   spot_camera[0] += now*spot_to_main[0]
-    //   spot_camera[1] += now*spot_to_main[1]
-    //   spot_camera[2] += now*spot_to_main[2]
-    // } 
+      // //Move the spot camera closer to the main camera each round a little bit
+      // var spot_to_main = m4.normalize([main_camera[0] - spot_camera[0], main_camera[1] - spot_camera[1], main_camera[2] - spot_camera[2]]);
+      // spot_camera[0] += now*spot_to_main[0];
+      // spot_camera[1] += now*spot_to_main[1];
+      // spot_camera[2] += now*spot_to_main[2];
+    
+      //threshold to change positions
+      var dist = distance_between_neighbors();
+      if(dist < 2.5){
+
+        if(next_camera_position + 1 === len_camera_positions){
+          continue_motion = false;
+        }else{
+          set_main_camera_attributes(next_camera_position, next_camera_position+1);
+        }
+      }
+    }
 
     // Canvas Setup
     resize(gl.canvas);
