@@ -32,10 +32,12 @@ function render_City(){
 
   //camera args
   //var cameraPosition = [4, .1, -5];
-  //var cameraPosition = [-4, .1, -5];
-  cameraPosition = [-5, .1, 5];
+  //var cameraPosition = [-2, .1, -2];
+  //var cameraPosition = [-4, .1, 4];
+  //var cameraPosition = [-1, -2, -2];
   //var cameraPosition = [0, 5, 5];
-  //var cameraPosition = [0, 3, 5]
+  var cameraPosition = [-1, -1, -3] //bingo..
+  //var cameraPosition = [-1, .1, -3]
   var target = [0, 0, 0];
   var up = [0, 1, 0];
 
@@ -102,34 +104,34 @@ function render_City(){
     //setWorldViewPerspectiveMatrix
     gl.drawArrays(gl.TRIANGLES, 0, 6*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
 
+    // //Create and Set obj2world2NDC
+    // var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
+    // var camera2world = m4.lookAt(cameraPosition, target, up);
+    // var obj2World = m4.multiply(camera2world, projectObject);
+    // //var moveObjectInWorld = m4.multiply(m4.yRotation(-degToRad(20)), m4.translation(-2.0, 0.0, 0.0));
+    // var moveObjectInWorld = m4.scaling(0.2, 0.2, 0.2);
+    // obj2World = m4.multiply(moveObjectInWorld, obj2World);
+    // gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2World);
+
+    // //Set obj2world
+    // gl.uniformMatrix4fv(obj2world_loc_camera, false, moveObjectInWorld);
+
+    // //Set cameraPos
+    // gl.uniform3fv(camera_loc_camera, cameraPosition);
+
+    // /*Fill Cube Parameters*/
+    // fill_fn(gl, position_loc_camera, set_lamppost_position);
+    // fill_fn(gl, color_loc_camera, set_lamppost_color);
+    // //setWorldViewPerspectiveMatrix
+    // gl.drawArrays(gl.TRIANGLES, 0, 13*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
+
+
     //Create and Set obj2world2NDC
     var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
     var camera2world = m4.lookAt(cameraPosition, target, up);
     var obj2World = m4.multiply(camera2world, projectObject);
     //var moveObjectInWorld = m4.multiply(m4.yRotation(-degToRad(20)), m4.translation(-2.0, 0.0, 0.0));
-    var moveObjectInWorld = m4.scaling(0.2, 0.2, 0.2);
-    obj2World = m4.multiply(moveObjectInWorld, obj2World);
-    gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2World);
-
-    //Set obj2world
-    gl.uniformMatrix4fv(obj2world_loc_camera, false, moveObjectInWorld);
-
-    //Set cameraPos
-    gl.uniform3fv(camera_loc_camera, cameraPosition);
-
-    /*Fill Cube Parameters*/
-    fill_fn(gl, position_loc_camera, set_lamppost_position);
-    fill_fn(gl, color_loc_camera, set_lamppost_color);
-    //setWorldViewPerspectiveMatrix
-    gl.drawArrays(gl.TRIANGLES, 0, 13*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
-
-
-    //Create and Set obj2world2NDC
-    var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
-    var camera2world = m4.lookAt(cameraPosition, target, up);
-    var obj2World = m4.multiply(camera2world, projectObject);
-    var moveObjectInWorld = m4.multiply(m4.yRotation(-degToRad(20)), m4.translation(-2.0, 0.0, 0.0));
-    //var moveObjectInWorld = m4.identity();
+    var moveObjectInWorld = m4.identity();
     obj2World = m4.multiply(moveObjectInWorld, obj2World);
     gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2World);
 
@@ -141,7 +143,7 @@ function render_City(){
 
     /*Fill Cube Parameters*/
     fill_fn(gl, position_loc_camera, set_car_position);
-    fill_fn(gl, color_loc_camera, set_car_normal);
+    fill_fn(gl, color_loc_camera, set_car_color);
     //setWorldViewPerspectiveMatrix
     gl.drawArrays(gl.TRIANGLES, 0, 32*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
 
@@ -182,7 +184,7 @@ function fill_fn(gl, attribute_location, _fn) {
 
 }
 
-//render_City();
+render_City();
 
 
 
@@ -415,7 +417,7 @@ var lamps = [ [0,18], [2, 18], [4, 18], [6, 18], [8, 18], [10, 18], [16, 18], [1
               [8, 2], [10, 2], [12, 2], [14, 2], [16, 2], [19, 2],
               [2, 1], [5, 1], [16, 0], [19, 0],
             ];
-render_Full_City();
+//render_Full_City();
 
 
 
