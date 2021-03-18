@@ -153,7 +153,7 @@ function render_City(){
     fill_fn(gl, position_loc_camera, set_car_position);
     fill_fn(gl, color_loc_camera, set_car_color);
     //setWorldViewPerspectiveMatrix
-    gl.drawArrays(gl.TRIANGLES, 0, 32*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
+    gl.drawArrays(gl.TRIANGLES, 0, 32*2*3);//Cube = 37 faces, 2 triangles per face, 3 verticies per triangle
 
 
     //draw cube again with rotated camera
@@ -206,7 +206,7 @@ function render_Full_City(){
   let prior_x = window.innerWidth / 2;
   let prior_y = window.innerHeight / 2;
 
-  document.addEventListener('mousemove', logKey);
+  //document.addEventListener('mousemove', logKey);
   // let center_x = window.innerWidth / 2;
   // let center_y = window.innerHeight / 2;
 
@@ -246,8 +246,9 @@ function render_Full_City(){
   var zFar = 2000;
 
   //camera args
-  var cameraPosition = [-12, 15, -15];
-  //var cameraPosition = [0, 35, 0.1];
+  // var cameraPosition = [-12, 15, -15];
+  //var cameraPosition = [-5, 5, 5];
+  var cameraPosition = [0, 20, 0.1];
   //var cameraPosition = [0, 35, 0.1];
   var target = [0, 0, 0];
   var up = [0, 1, 0];
@@ -276,10 +277,10 @@ function render_Full_City(){
 
     //var cameraPosition = [2, 15, 13]; -2
     //var cameraPosition = [-12, 15, -15]; +2
-    now *= 0.000001;
-    cameraPosition[0] += 2*now;
-    cameraPosition[1] -= 0.5*now;
-    cameraPosition[2] += 2*now;
+    // now *= 0.000001;
+    // cameraPosition[0] += 2*now;
+    // cameraPosition[1] -= 0.5*now;
+    // cameraPosition[2] += 2*now;
 
     // Canvas Setup
     resize(gl.canvas);
@@ -314,6 +315,32 @@ function render_Full_City(){
     add_building(-10, 1, -8.5, 1.2, 2.3, 2);
     add_building(-10, 1, -3.4, 1.2, 2.2,1.5);
     add_building(-3.3, 1.2, -6.5,  .9, 2.7, 1.5);
+
+    //Add Normal Cars
+    add_car(1, 1, 1, 0, 0, 0);
+
+    function add_car(tx, ty, tz, sx, sy, sz){
+      //Create and Set obj2world2NDC
+      var projectObject = m4.createPerspectiveMatrix(fieldOfView, aspect, zNear, zFar);
+      var camera2world = m4.lookAt(cameraPosition, target, up);
+      var obj2World = m4.multiply(camera2world, projectObject);
+      var moveObjectInWorld = m4.multiply(m4.scaling(sx, sy, sz), m4.translation(tx, ty, tz));
+      obj2World = m4.multiply(moveObjectInWorld, obj2World);
+      gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2World);
+
+      //Set obj2world
+      gl.uniformMatrix4fv(obj2world_loc_camera, false, moveObjectInWorld);
+
+      //Set cameraPos
+      gl.uniform3fv(camera_loc_camera, cameraPosition);
+
+      /*Fill Cube Parameters*/
+      fill_fn(gl, position_loc_camera, set_car_position);
+      fill_fn(gl, color_loc_camera, set_car_color);
+      //setWorldViewPerspectiveMatrix
+      gl.drawArrays(gl.TRIANGLES, 0, 32*2*3);//Cube = 6 faces, 2 triangles per face, 3 verticies per triangle
+    }
+
 
     function add_building(tx, ty, tz, sx, sy, sz){
       //Create and Set obj2world2NDC
