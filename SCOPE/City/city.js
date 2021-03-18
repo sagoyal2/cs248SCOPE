@@ -38,13 +38,13 @@ function render_City(){
   //var cameraPosition = [0, 5, 5];
   //var cameraPosition = [-1, -1, -3] //bingo..
   //var cameraPosition = [2, -1, -3]
-  //var cameraPosition = [2, -1, 3]
-  //var cameraPosition = [-3, -1, -3]
+  var cameraPosition = [2, 3, 3]
+  //var cameraPosition = [-3, 3, -3];
 
 
   //var cameraPosition = [0.1, -5, -.1]
 
-  var cameraPosition = [3, .3, 5]
+  //var cameraPosition = [3, .3, 5]
   var target = [0, 0, 0];
   var up = [0, 1, 0];
 
@@ -150,10 +150,10 @@ function render_City(){
     gl.uniform3fv(camera_loc_camera, cameraPosition);
 
     /*Fill Cube Parameters*/
-    fill_fn(gl, position_loc_camera, set_camera_position);
-    fill_fn(gl, color_loc_camera, set_camera_color);
+    fill_fn(gl, position_loc_camera, set_police_position);
+    fill_fn(gl, color_loc_camera, set_police_color);
     //setWorldViewPerspectiveMatrix
-    gl.drawArrays(gl.TRIANGLES, 0, 18*3);//Cube = 37 faces, 2 triangles per face, 3 verticies per triangle
+    gl.drawArrays(gl.TRIANGLES, 0, 37*3*2);//Cube = 37 faces, 2 triangles per face, 3 verticies per triangle
 
 
     //draw cube again with rotated camera
@@ -192,7 +192,7 @@ function fill_fn(gl, attribute_location, _fn) {
 
 }
 
-render_City();
+//render_City();
 
 
 
@@ -255,11 +255,12 @@ function render_Full_City(){
   var shift_up;// = m4.cross(shift_right, main_motion_direction);
 
   var main_camera_positions = [[5, 9, 2], [-5, 2, -6], [6, 8, 6]];
+  //var main_camera_positions = [[10, 12, 10], [-5, 2, -6], [6, 8, 6]];
   var len_camera_positions = 3; //MUST be greater than or equal to 3
   var curr_camera_position = 0;
   var next_camera_position = 1;
 
-  var spot_camera = [0, 12, 10];
+  var spot_camera = [0, 10, 20];
   var spot_target = main_camera;
 
   function set_main_camera_attributes(new_curr_camera_position, new_next_camera_position){
@@ -642,5 +643,10 @@ var lamps = [ [0,18], [2, 18], [4, 18], [6, 18], [8, 18], [10, 18], [16, 18], [1
               [2, 1], [5, 1], [16, 0], [19, 0],
             ];
 render_Full_City();
+
+
+
+
+
 
 

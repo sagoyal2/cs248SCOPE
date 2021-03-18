@@ -293,19 +293,21 @@ function set_police_position(gl) {
 
 		//LEFT
 		 -0.4,   0.8,   0.1,
-		 -0.4,   0.8,     0,
 		 -0.4,     1,     0,
+		 -0.4,   0.8,     0,
 	     -0.4,     1,     0,
-		 -0.4,     1,   0.1,
 		 -0.4,   0.8,   0.1,
+		 -0.4,     1,   0.1,
+
 
 		//BACK
 		 -0.4,   0.8,     0,
+		  0.4,     1,     0,
 		  0.4,   0.8,     0,
 		  0.4,     1,     0,
-		  0.4,     1,     0,
-		 -0.4,     1,     0,
 		 -0.4,   0.8,     0,
+		 -0.4,     1,     0,
+
 	];
 
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
