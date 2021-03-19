@@ -254,12 +254,17 @@ function render_Full_City(){
   var shift_right;// = m4.cross(main_motion_direction, up);
   var shift_up;// = m4.cross(shift_right, main_motion_direction);
 
-  var main_camera_positions = [[5, 9, 2], [-5, 2, -6], [6, 8, 6]];
-  //var main_camera_positions = [[10, 12, 10], [-5, 2, -6], [6, 8, 6]];
+  //var main_camera_positions = [[5, 9, 2], [-5, 2, -6], [6, 8, 6]];
+  //var main_camera_positions = [[10, 12, 10], [-5, 2, -6], [6, 8, 6]];//[-10, 2, 6], [0, 2, 10], [0, 5, 0], [0, 5, 0], [-3, 1, -4], [0, 2, -4]
+  var main_camera_positions = [[-10, 2, 6], [0, 2, 10], [0, 5, 0], [-3, 1, -4], [0, 2, -4], [0, 3, -6], [6, 2, -7], [9, 4, 7]];
+  // var len_camera_positions = 8; //MUST be greater than or equal to 3
+  //var main_camera_positions = [[1, 6, 1], [-3, 0.1, -5]];
   var len_camera_positions = 3; //MUST be greater than or equal to 3
   var curr_camera_position = 0;
   var next_camera_position = 1;
 
+  //var spot_camera = [15, 9, -17.1];
+  //var spot_target = [10, 0,-5];
   var spot_camera = [0, 10, 20];
   var spot_target = main_camera;
 
@@ -381,21 +386,29 @@ function render_Full_City(){
     
     if(continue_motion){
 
-      now *= 0.000001;
+      now *= 0.000002;
       main_camera[0] += 2*now*main_motion_direction[0];
       main_camera[1] += 2*now*main_motion_direction[1];
       main_camera[2] += 2*now*main_motion_direction[2];
 
+      // now *= 0.00002;
+      // main_camera[0] = 15*Math.cos(now % 2*Math.PI);
+      // main_camera[2] = 15*Math.sin(now % 2*Math.PI);
 
       // //Move the spot camera closer to the main camera each round a little bit
       // var spot_to_main = m4.normalize([main_camera[0] - spot_camera[0], main_camera[1] - spot_camera[1], main_camera[2] - spot_camera[2]]);
       // spot_camera[0] += now*spot_to_main[0];
       // spot_camera[1] += now*spot_to_main[1];
       // spot_camera[2] += now*spot_to_main[2];
+
+      // const push = 2;
+      // spot_camera[0] = main_camera[0] - push*main_motion_direction[0];
+      // spot_camera[1] = main_camera[1] - push*main_motion_direction[1];
+      // spot_camera[2] = main_camera[2] - push*main_motion_direction[2];
     
       //threshold to change positions
       var dist = distance_between_neighbors();
-      if(dist < 2.5){
+      if(dist < 0.5){
 
         if(next_camera_position + 1 === len_camera_positions){
           continue_motion = false;
@@ -420,11 +433,11 @@ function render_Full_City(){
 
     gl.viewport(0, 0, leftWidth - offset, height);
     gl.scissor(0, 0, leftWidth - offset, height);
-    drawWithCamera(main_camera, main_target);
+    drawWithCamera(main_camera, main_target, true);
 
     gl.viewport(leftWidth + offset, 0, rightWidth, height);
     gl.scissor(leftWidth +offset, 0, rightWidth, height);
-    drawWithCamera(spot_camera, spot_target);
+    drawWithCamera(spot_camera, spot_target, false);
 
     //For spot view draw in the main camera
     {
@@ -437,7 +450,7 @@ function render_Full_City(){
 
         var main_camera_camera2world = m4.lookAt(main_camera, main_target, up);
         var moveObjectInWorld =  m4.multiply(m4.inverse(main_camera_camera2world), m4.scaling(0.5, 0.5, 0.5));
-
+        //moveObjectInWorld = m4.multiply(m4.translation(-10, 0, 0), moveObjectInWorld);
         obj2World = m4.multiply(moveObjectInWorld, obj2World);
         gl.uniformMatrix4fv(obj2world2NDC_loc_static, false, obj2World);
 
@@ -449,7 +462,7 @@ function render_Full_City(){
 
     }
 
-    function drawWithCamera(given_camera, given_target){
+    function drawWithCamera(given_camera, given_target, left_side){
       //Program for Ground
       gl.useProgram(cube_static_program);
       add_ground_plane();
@@ -476,7 +489,7 @@ function render_Full_City(){
       add_building(-10, 1, -3.4, 1.2, 2.2,1.5);
       add_building(-3.3, 1.2, -6.5,  .9, 2.7, 1.5);
 
-      //Add Normal Cars
+      // //Add Normal Cars
       add_car(0.2, -.7, 0, .7, .7, .7, degToRad(180));
       add_car(-5.4, -.7, -4, .7, .7, .7, degToRad(135));
       add_car(6, -.7, -5.5, .7, .7, .7, degToRad(145));
@@ -498,18 +511,31 @@ function render_Full_City(){
         var obj2World = m4.multiply(camera2world, projectObject);
         var moveObjectInWorld = m4.multiply(m4.scaling(sx, sy, sz), m4.multiply(m4.yRotation(ry), m4.translation(tx, ty, tz)));
         obj2World = m4.multiply(moveObjectInWorld, obj2World);
-        gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2World);
 
-        //Set obj2world
-        gl.uniformMatrix4fv(obj2world_loc_camera, false, moveObjectInWorld);
+        // if(left_side){
+          gl.useProgram(cube_camera_program);
+          gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2World);
 
-        //Set cameraPos
-        gl.uniform3fv(camera_loc_camera, given_camera);
+          //Set obj2world
+          gl.uniformMatrix4fv(obj2world_loc_camera, false, moveObjectInWorld);
 
-        /*Fill Cube Parameters*/
-        fill_fn(gl, position_loc_camera, set_car_position);
-        fill_fn(gl, color_loc_camera, set_car_color);
-        gl.drawArrays(gl.TRIANGLES, 0, 32*2*3);
+          //Set cameraPos
+          gl.uniform3fv(camera_loc_camera, given_camera);
+
+          /*Fill Cube Parameters*/
+          fill_fn(gl, position_loc_camera, set_car_position);
+          fill_fn(gl, color_loc_camera, set_car_color);
+          gl.drawArrays(gl.TRIANGLES, 0, 32*2*3);
+        // }else{
+        //   gl.useProgram(cube_static_program);
+        //   gl.uniformMatrix4fv(obj2world2NDC_loc_static, false, obj2World);
+
+        //   /*Fill Cube Parameters*/
+        //   fill_fn(gl, position_loc_static, set_car_position);
+        //   fill_fn(gl, color_loc_static, set_car_color);
+        //   gl.drawArrays(gl.TRIANGLES, 0, 32*2*3);
+        // }
+
       }
 
       function add_taxi(tx, ty, tz, sx, sy, sz, ry){
@@ -519,18 +545,30 @@ function render_Full_City(){
         var obj2World = m4.multiply(camera2world, projectObject);
         var moveObjectInWorld = m4.multiply(m4.scaling(sx, sy, sz), m4.multiply(m4.yRotation(ry), m4.translation(tx, ty, tz)));
         obj2World = m4.multiply(moveObjectInWorld, obj2World);
-        gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2World);
+        
+        // if(left_side){
+          gl.useProgram(cube_camera_program);
+          gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2World);
 
-        //Set obj2world
-        gl.uniformMatrix4fv(obj2world_loc_camera, false, moveObjectInWorld);
+          //Set obj2world
+          gl.uniformMatrix4fv(obj2world_loc_camera, false, moveObjectInWorld);
 
-        //Set cameraPos
-        gl.uniform3fv(camera_loc_camera, given_camera);
+          //Set cameraPos
+          gl.uniform3fv(camera_loc_camera, given_camera);
 
-        /*Fill Cube Parameters*/
-        fill_fn(gl, position_loc_camera, set_police_position);
-        fill_fn(gl, color_loc_camera, set_police_color);
-        gl.drawArrays(gl.TRIANGLES, 0, 37*2*3);
+          /*Fill Cube Parameters*/
+          fill_fn(gl, position_loc_camera, set_police_position);
+          fill_fn(gl, color_loc_camera, set_police_color);
+          gl.drawArrays(gl.TRIANGLES, 0, 37*2*3);
+        // }else{
+        //   gl.useProgram(cube_static_program);
+        //   gl.uniformMatrix4fv(obj2world2NDC_loc_static, false, obj2World);
+
+        //   /*Fill Cube Parameters*/
+        //   fill_fn(gl, position_loc_static, set_police_position);
+        //   fill_fn(gl, color_loc_static, set_police_color);
+        //   gl.drawArrays(gl.TRIANGLES, 0, 37*2*3);
+        // }
       }
 
 
@@ -541,19 +579,31 @@ function render_Full_City(){
         var obj2World = m4.multiply(camera2world, projectObject);
         var moveObjectInWorld = m4.multiply(m4.scaling(sx, sy, sz), m4.translation(tx, ty, tz));
         obj2World = m4.multiply(moveObjectInWorld, obj2World);
-        gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2World);
+       
+        // if(left_side){
+          gl.useProgram(cube_camera_program);
+          gl.uniformMatrix4fv(obj2world2NDC_loc_camera, false, obj2World);
 
-        //Set obj2world
-        gl.uniformMatrix4fv(obj2world_loc_camera, false, moveObjectInWorld);
+          //Set obj2world
+          gl.uniformMatrix4fv(obj2world_loc_camera, false, moveObjectInWorld);
 
-        //Set cameraPos
-        gl.uniform3fv(camera_loc_camera, given_camera);
+          //Set cameraPos
+          gl.uniform3fv(camera_loc_camera, given_camera);
 
-        /*Fill Cube Parameters*/
-        fill_fn(gl, position_loc_camera, set_cube_position);
-        fill_fn(gl, color_loc_camera, set_cube_color);
-        //setWorldViewPerspectiveMatrix
-        gl.drawArrays(gl.TRIANGLES, 0, 6*2*3);
+          /*Fill Cube Parameters*/
+          fill_fn(gl, position_loc_camera, set_cube_position);
+          fill_fn(gl, color_loc_camera, set_cube_color);
+          gl.drawArrays(gl.TRIANGLES, 0, 6*2*3);
+        // }else{
+        //   gl.useProgram(cube_static_program);
+        //   gl.uniformMatrix4fv(obj2world2NDC_loc_static, false, obj2World);
+
+        //   /*Fill Cube Parameters*/
+        //   fill_fn(gl, position_loc_static, set_cube_position);
+        //   fill_fn(gl, color_loc_static, set_cube_color);
+        //   gl.drawArrays(gl.TRIANGLES, 0, 6*2*3);
+        // }
+
       }
 
       function add_ground_plane(){
