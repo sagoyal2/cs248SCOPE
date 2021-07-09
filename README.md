@@ -1,7 +1,7 @@
 
 # CS 248 Final Project: S.C.O.P.E
 
-This is the write up for CS 248 Final Project by **Samaksh Goyal (sagoyal) and Ayushi Tandel (atandel)**.
+This is the write up for CS 248 Final Project by **Samaksh Goyal (sagoyal) and Ayushi Tandel (atandel)**. [PDF Link](https://github.com/sagoyal2/cs248SCOPE/blob/main/CS248_Project_Write_Up.pdf), [Video Link](https://drive.google.com/file/d/1drZWdoD9PTemERqPMnFYO3_2CDnOv07J/view).
 
  
 ## Overview
@@ -25,10 +25,6 @@ this will create an [express](https://expressjs.com/) server on your local machi
 http://localhost:${port}/City/city.html
 ```
 
-
-## User Interaction
-
-Add stuff here...
 
 ## Acknowledgements
 
